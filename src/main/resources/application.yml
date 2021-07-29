@@ -1,0 +1,71 @@
+spring:
+
+  application:
+    name: fileTransmission
+
+  jackson:
+    time-zone: CTT
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    name: defaultDataSource
+    url: jdbc:mysql://localhost:3306/ExperimentalPlatform?serverTimezone=CTT
+    username: root
+    password: 121522734a
+    initialization-mode: always
+    platform: mysql
+    data: data.sql
+    sql-script-encoding: utf-8
+
+    # Hikari 连接池配置
+    hikari:
+      # 最小空闲连接数量
+      minimum-idle: 50
+      # 空闲连接存活最大时间，默认600000（10分钟）
+      idle-timeout: 180000
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 150
+      # 此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      auto-commit: true
+      # 连接池名称
+      pool-name: MyHikariCP
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      max-lifetime: 1800000
+      # 数据库连接超时时间,默认30秒，即30000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+
+server:
+  port: 8888
+
+  servlet:
+    session:
+      timeout: 600
+#      cookie:
+#        http-only: true
+
+
+
+logging:
+  level:
+    root: info
+
+#mybatis-plus:
+#  configuration:
+#    log-impl=org:
+#      apache:
+#        ibatis:
+#          logging:
+#            stdout:
+#              StdOutImpl
+#    log-impl:
+
+#mybatis:
+#  config-location: classpath:/mybatis.xml
+#  mapper-locations: classpath:/mappers/*.xml
