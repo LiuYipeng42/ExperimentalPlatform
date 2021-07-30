@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 import socket
 from binascii import hexlify, unhexlify
-import sys
 
 # XOR two bytearrays
 def xor(first, second):
@@ -33,11 +32,9 @@ class PaddingOracle:
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2: 
-        sys.exit("Please select a block")
+    # 给此变量赋值
+    block =
 
-    block = int(sys.argv[1])
-    # oracle = PaddingOracle('10.9.0.80', 6000)
     oracle = PaddingOracle("containerIP", 6000)
 
     # Get the IV + Ciphertext from the oracle

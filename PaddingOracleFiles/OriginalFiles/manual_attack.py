@@ -47,6 +47,8 @@ if __name__ == "__main__":
     # The result is 0. This is not required for the attack.
     # Its sole purpose is to make the printout look neat.
     # In the experiment, we will iteratively replace these values.
+
+    # 只可以改变 D2[i]的值，如果代码改动太多将不会运行
     D2 = bytearray(16)
 
     D2[0]  = C1[0]
@@ -68,6 +70,8 @@ if __name__ == "__main__":
     ###############################################################
     # In the experiment, we need to iteratively modify CC1
     # We will send this CC1 to the oracle, and see its response.
+
+    # 只可以改变 CC1[i]的值，如果代码改动太多将不会运行
     CC1 = bytearray(16)
 
     CC1[0]  = 0x00
@@ -96,6 +100,7 @@ if __name__ == "__main__":
     # one valid value. This value helps us get one byte of D2. 
     # Repeating the method for 16 times, we get all the 16 bytes of D2.
 
+    # 只可以改变 K的值，如果代码改动太多将不会运行
     K = 1
     for i in range(256):
           CC1[16 - K] = i

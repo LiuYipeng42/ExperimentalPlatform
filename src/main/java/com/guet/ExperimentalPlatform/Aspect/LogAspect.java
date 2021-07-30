@@ -22,11 +22,11 @@ public class LogAspect {
         getInfo(request, userAccount);
     }
 
-    @Before(value = "(PaddingOracleController() || MD5CollisionController()) && args(request, userAccount, otherData)",
-            argNames = "request,userAccount,otherData")
-    public void log(HttpServletRequest request, String userAccount, String otherData) {
+    @Before(value = "(PaddingOracleController() || MD5CollisionController()) && args(request, userAccount, fileName)",
+            argNames = "request,userAccount,fileName")
+    public void log(HttpServletRequest request, String userAccount, String fileName) {
         getInfo(request, userAccount);
-        System.out.println(otherData);
+        System.out.println(fileName);
     }
 
     private void getInfo(HttpServletRequest request, String userAccount){

@@ -1,7 +1,7 @@
 package com.guet.ExperimentalPlatform.controller;
 
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
-import com.guet.ExperimentalPlatform.Utils.RunCMD;
+import com.guet.ExperimentalPlatform.Utils.RunPython;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -85,16 +85,14 @@ public class PaddingOracleController {
 
     }
 
-    @GetMapping("/auto_attack/{userAccount}/{block}")
+    @GetMapping("/auto_attack/{userAccount}")
     public String runAutoAttack(HttpServletRequest request,
-                                @PathVariable("userAccount") String userAccount,
-                                @PathVariable("block") String block) throws IOException {
+                                @PathVariable("userAccount") String userAccount) throws IOException {
 
-        return RunCMD.runPython(
+        return RunPython.runPython(
                 "PaddingOracleFiles/ExperimentDataFile/" +
                         request.getSession().getAttribute(userAccount) +
-                        "_auto_attack.py " +
-                        block
+                        "_auto_attack.py "
         );
 
     }
@@ -103,7 +101,7 @@ public class PaddingOracleController {
     public String runManualAttack(HttpServletRequest request,
                                   @PathVariable("userAccount") String userAccount) throws IOException {
 
-        return RunCMD.runPython(
+        return RunPython.runPython(
                 "PaddingOracleFiles/ExperimentDataFile/" +
                         request.getSession().getAttribute(userAccount) +
                         "_manual_attack.py"
