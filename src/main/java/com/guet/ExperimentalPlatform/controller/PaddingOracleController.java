@@ -92,7 +92,7 @@ public class PaddingOracleController {
         return RunPython.runPython(
                 "PaddingOracleFiles/ExperimentDataFile/" +
                         request.getSession().getAttribute(userAccount) +
-                        "_auto_attack.py "
+                        "_auto_attack.py"
         );
 
     }

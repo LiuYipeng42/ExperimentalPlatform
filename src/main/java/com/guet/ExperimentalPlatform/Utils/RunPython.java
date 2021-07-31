@@ -125,7 +125,7 @@ public class RunPython {
             if (i != -1) {
                 for (String s : line.substring(i + 6).split(",")) {
                     if (!set.contains(s.strip())) {
-                        return "";
+                        return "不可import其他库";
                     }
                 }
             }
@@ -141,11 +141,11 @@ public class RunPython {
 
         changedPythonFile = limitImportAndFormat(changedPythonFile);
 
-        if (changedPythonFile.equals("")){
+        if (changedPythonFile.equals("不可import其他库")){
             return "不可import其他库";
         }
 
-        if (codesSimilarity(autoManual, changedPythonFile) < 0.84){
+        if (changedPythonFile.length() > 3000 || codesSimilarity(autoManual, changedPythonFile) < 0.84){
             return "代码修改过多";
         }
 

@@ -38,6 +38,7 @@ public class LogAspect {
                 System.out.println(className.substring(97));
             }
         }
+        System.out.println("Session: " + request.getSession());
         System.out.println("Account: " + userAccount + " Id: " + request.getSession().getAttribute(userAccount));
     }
 
