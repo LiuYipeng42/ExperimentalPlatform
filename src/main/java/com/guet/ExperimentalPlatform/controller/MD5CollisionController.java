@@ -38,7 +38,4 @@ public class MD5CollisionController {
         );
     }
 
-
-
-
 }

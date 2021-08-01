@@ -13,8 +13,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 @Configuration
 public class WebAppConfig implements WebMvcConfigurer{
 
-    private final Logger logger = LoggerFactory.getLogger(WebMvcConfigurer.class);
-
     //解决跨域问题
     @Override
     public void addCorsMappings(CorsRegistry registry) {

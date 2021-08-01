@@ -29,7 +29,7 @@ public class PaddingOracleController {
         try {
             paddingOracleService.createEnvironment(
                     (String) request.getSession().getAttribute(userAccount),
-                    "handsonsecurity/seed-server:padding-oracle"
+                    "guet/security-server:padding-oracle"
             );
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,11 +89,20 @@ public class PaddingOracleController {
     public String runAutoAttack(HttpServletRequest request,
                                 @PathVariable("userAccount") String userAccount) throws IOException {
 
-        return RunPython.runPython(
+
+        String result = RunPython.runPython(
                 "PaddingOracleFiles/ExperimentDataFile/" +
                         request.getSession().getAttribute(userAccount) +
                         "_auto_attack.py"
         );
+
+        if (result.contains("Congraduations! you've got the plain!")){
+            result += "\n已获取正确密文!";
+        }else {
+            result += "\n获取正确密文失败!";
+        }
+
+        return result;
 
     }
 

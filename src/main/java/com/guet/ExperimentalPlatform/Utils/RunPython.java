@@ -145,7 +145,11 @@ public class RunPython {
             return "不可import其他库";
         }
 
-        if (changedPythonFile.length() > 3000 || codesSimilarity(autoManual, changedPythonFile) < 0.84){
+        if (changedPythonFile.length() > 3000){
+            return "代码修改过多";
+        }
+
+        if (!autoManual && codesSimilarity(false, changedPythonFile) < 0.84){
             return "代码修改过多";
         }
 
