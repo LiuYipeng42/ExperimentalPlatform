@@ -29,6 +29,8 @@ public class LogAspect {
         System.out.println(fileName);
     }
 
+
+
     private void getInfo(HttpServletRequest request, String userAccount){
         System.out.println("------------------------------------------------------");
         String className;

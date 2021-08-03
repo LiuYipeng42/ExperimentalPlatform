@@ -3,7 +3,6 @@ package com.guet.ExperimentalPlatform.service.impls;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 
-import com.github.dockerjava.api.exception.ConflictException;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -13,7 +12,6 @@ import com.guet.ExperimentalPlatform.service.PaddingOracleService;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -69,16 +67,18 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
 
     public void closeEnvironment(String userId){
         ContainerInfo containerInfo = userIdContainer.get(userId);
+        if (containerInfo != null) {
 
-        String containerId = containerInfo.getContainerId();
-        // 关闭容器
-        client.stopContainerCmd(containerId).exec();
-        // 删除容器
-        client.removeContainerCmd(containerId).exec();
-        // 删除文件
-        userIdContainer.remove(userId);
-        new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py").delete();
-        new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py").delete();
+            String containerId = containerInfo.getContainerId();
+            // 关闭容器
+            client.stopContainerCmd(containerId).exec();
+            // 删除容器
+            client.removeContainerCmd(containerId).exec();
+            // 删除文件
+            userIdContainer.remove(userId);
+            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py").delete();
+            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py").delete();
+        }
 
     }
 

@@ -64,6 +64,9 @@ public class MessageServiceImpl implements MessageService{
                 );
                 break;
             case "busy":
+//                System.out.println(transmissionId);
+//                System.out.println(toUserId + " " + userId);
+//                System.out.println(transmissionId.get(toUserId + " " + userId));
                 connectId = transmissionId.get(toUserId + " " + userId).getConnectId();
                 connectRecordMapper.update(
                         null,

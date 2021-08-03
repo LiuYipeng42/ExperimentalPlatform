@@ -28,22 +28,26 @@ public class SessionListener implements HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent arg0) {
 
-        String userId = (String) arg0.getSession().getAttribute("userId");
-        paddingOracleService.closeEnvironment(userId);
+        String userId = getAttributes(arg0).split(": ")[1].strip();
 
-        getAttributes(arg0);
+        paddingOracleService.closeEnvironment(userId);
 
         System.out.println("User " + userId + " logout!");
     }
 
-    private void getAttributes(HttpSessionEvent arg0) {
+    private String getAttributes(HttpSessionEvent arg0) {
+
+        StringBuilder sessionData = new StringBuilder();
+
         HttpSession session = arg0.getSession();
 
         Enumeration<String> e = session.getAttributeNames();
         String key;
         while (e.hasMoreElements()) {
             key = e.nextElement();
-            System.out.println(key + ": " + session.getAttribute(key));
+            sessionData.append(key).append(": ").append(session.getAttribute(key)).append("\n");
         }
+
+        return sessionData.toString();
     }
 }

@@ -7,7 +7,6 @@ import com.guet.ExperimentalPlatform.entity.StudyRecord;
 import com.guet.ExperimentalPlatform.mapper.StudentMapper;
 import com.guet.ExperimentalPlatform.mapper.StudyRecordMapper;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
-import com.guet.ExperimentalPlatform.pojo.RequestResult;
 
 import com.guet.ExperimentalPlatform.service.StudentService;
 import org.springframework.stereotype.Service;
@@ -32,13 +31,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student>
         this.studyRecordMapper = studyRecordMapper;
     }
 
-    public RequestResult<Student> login(LoginForm loginForm) {
+    public String login(LoginForm loginForm) {
         Student student = studentMapper.selectOne(
                 new QueryWrapper<Student>().eq("account", loginForm.account)
         );
 
         if (student == null) {
-            return new RequestResult<>(200, "can't find this user!", null);
+            return "没有此用户";
         }
 
         StudyRecord studyRecord = studyRecordMapper.selectOne(
@@ -46,13 +45,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student>
         );
 
         if (studyRecord != null) {
-            return new RequestResult<>(200, "此账号已登录", null);
+            return "此账号已登录";
         }
 
         if (student.getPassword().equals(loginForm.password)) {
-            return new RequestResult<>(200, "success", student);
+            return "success " + student.getId();
         } else {
-            return new RequestResult<>(200, "wrong password!", null);
+            return "密码错误";
         }
 
     }

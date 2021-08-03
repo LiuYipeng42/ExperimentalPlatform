@@ -36,9 +36,9 @@ spring:
       connection-test-query: SELECT 1
 
 
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 
 server:
@@ -46,7 +46,7 @@ server:
 
   servlet:
     session:
-      timeout: 600
+      timeout: 60
 #      cookie:
 #        http-only: true
 
