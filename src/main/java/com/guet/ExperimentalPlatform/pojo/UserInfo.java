@@ -6,7 +6,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 @Data
 @Accessors(chain = true)
-public class WebSocketInfo {
+public class UserInfo {
     private long userId;
     private WebSocketSession session;
 }
