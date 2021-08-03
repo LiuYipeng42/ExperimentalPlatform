@@ -35,10 +35,10 @@ spring:
       connection-timeout: 30000
       connection-test-query: SELECT 1
 
-
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 
 server:

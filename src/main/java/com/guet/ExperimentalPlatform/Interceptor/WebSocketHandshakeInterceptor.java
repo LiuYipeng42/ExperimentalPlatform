@@ -1,7 +1,6 @@
 package com.guet.ExperimentalPlatform.Interceptor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
@@ -17,7 +16,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest serverHttpRequest,
                                    ServerHttpResponse serverHttpResponse,
                                    WebSocketHandler webSocketHandler,
-                                   Map<String, Object> map) throws Exception {
+                                   Map<String, Object> map) {
 
         map.put("userAccount", ((ServletServerHttpRequest) serverHttpRequest).getServletRequest().getParameter("userAccount"));
         return true;

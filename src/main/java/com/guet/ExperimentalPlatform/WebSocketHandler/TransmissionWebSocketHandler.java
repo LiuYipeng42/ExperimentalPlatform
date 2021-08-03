@@ -126,6 +126,13 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
 
         String userAccount = (String) session.getAttributes().get("userAccount");
 
+        studyRecordService.update(
+                null,
+                new UpdateWrapper<StudyRecord>().set("logout_time", new Date())
+                        .eq("student_id", userInfo.get(userAccount).getUserId())
+                        .isNull("logout_time")
+        );
+
         if (userInfo.containsKey(userAccount)) {
             userInfo.remove(userAccount);
             Set<String> users = userInfo.keySet();
@@ -138,13 +145,6 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
                 }
             }
         }
-
-        studyRecordService.update(
-                null,
-                new UpdateWrapper<StudyRecord>().set("logout_time", new Date())
-                        .eq("student_id", userInfo.get(userAccount).getUserId())
-                        .isNull("logout_time")
-        );
 
     }
 
