@@ -1,10 +1,11 @@
 package com.guet.ExperimentalPlatform.WebSocketHandler;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
 import com.guet.ExperimentalPlatform.entity.Student;
-import com.guet.ExperimentalPlatform.pojo.UserInfo;
 import com.guet.ExperimentalPlatform.service.MD5CollisionService;
 import com.guet.ExperimentalPlatform.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +48,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
             System.out.println("make -C " + filePath);
             result = RunCMD.runCMD("make -C " + filePath);
         }else if(command.startsWith("./")){
-            System.out.println("./" + filePath + "/" + command.substring(2));
-            result = RunCMD.runCMD("./" + filePath + "/" + command.substring(2));
+            result = RunCMD.runCMD("./" + command.substring(2), filePath);
         }else if(command.startsWith("hex ")){
             System.out.println("hexdump -Cv " + filePath + "/" + command.substring(4));
             result = RunCMD.runCMD("hexdump -Cv " + filePath + "/" + command.substring(4));
@@ -58,9 +58,15 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         }else if(command.startsWith("vi ")){
             System.out.println("vi " + filePath + "/" + command.substring(3));
             result = FileOperation.readFile(filePath + "/" + command.substring(3));
+        }else if(command.startsWith("saveFile ")){
+            JSONObject messageJsonObject = JSON.parseObject(command.substring(8));
+            FileOperation.writeFile(filePath + "/" + messageJsonObject.getString("fileName"),
+                    messageJsonObject.getString("data"));
+        }else {
+            result = command.split(" ")[0] + ": " + "command not fund";
         }
 
-        System.out.println(result);
+//        System.out.println(result);
         session.sendMessage(new TextMessage(result));
         
     }
@@ -85,11 +91,12 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
         String userAccount = (String) session.getAttributes().get("userAccount");
 
-        userIds.remove((String) session.getAttributes().get("userAccount"));
-
         md5CollisionService.closeEnvironment(
                 String.valueOf(userIds.get(userAccount))
         );
+
+        userIds.remove((String) session.getAttributes().get("userAccount"));
+
     }
 
 }

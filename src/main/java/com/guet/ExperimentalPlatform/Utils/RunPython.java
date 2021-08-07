@@ -167,7 +167,7 @@ public class RunPython {
         if(checkStatus.equals("success")){
             Process process = runtime.exec("python3 " + filePath);
 
-            result = CMDResult.getResult(process);
+            result = CMDResult.getResult(process, 1);
 
             if (result.equals("")){
                 return "运行出错";
