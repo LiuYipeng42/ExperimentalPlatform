@@ -6,20 +6,16 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Date;
 
 @Data
 @Accessors(chain = true)
-@TableName("study_record")
-public class StudyRecord {
+@TableName("PO_auto_attack_record")
+public class POAutoAttackRecord {
+
     @TableId(type = IdType.AUTO)
-    private Long id;
+    private long id;
 
-    private long StudentId;
+    private long studentId;
 
-    private int experimentType;
-
-    private Date startTime;
-
-    private Date endTime;
+    private int autoAttackTimes;
 }

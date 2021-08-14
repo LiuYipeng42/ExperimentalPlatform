@@ -10,8 +10,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@TableName("encryption_information")
-public class EncryptionInformation {
+@TableName("FT_encryption_information")
+public class FTEncryptionInformation {
 
     @TableId(type = IdType.AUTO)
     Long id;

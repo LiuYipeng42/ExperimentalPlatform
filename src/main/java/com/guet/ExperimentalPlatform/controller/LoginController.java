@@ -24,9 +24,9 @@ public class LoginController {
         String loginResult = studentService.login(loginForm);
 
         if (loginResult.contains("success")) {
-            HttpSession httpSession = request.getSession();
+            HttpSession session = request.getSession();
             String userId = String.valueOf(loginResult.split(" ")[1]);
-            httpSession.setAttribute(loginForm.account, userId);
+            session.setAttribute("userId", userId);
             loginResult = "success";
         }
         return loginResult;

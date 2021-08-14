@@ -14,12 +14,15 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    TransmissionWebSocketHandler transmissionWebSocketHandler;
-    MD5CollisionWebSocketHandler md5CollisionWebSocketHandler;
+    private final WebSocketHandshakeInterceptor webSocketHandshakeInterceptor;
+    private final TransmissionWebSocketHandler transmissionWebSocketHandler;
+    private final MD5CollisionWebSocketHandler md5CollisionWebSocketHandler;
 
     @Autowired
-    public WebSocketConfig(TransmissionWebSocketHandler transmissionWebSocketHandler,
+    public WebSocketConfig(WebSocketHandshakeInterceptor webSocketHandshakeInterceptor,
+                           TransmissionWebSocketHandler transmissionWebSocketHandler,
                            MD5CollisionWebSocketHandler md5CollisionWebSocketHandler) {
+        this.webSocketHandshakeInterceptor = webSocketHandshakeInterceptor;
         this.transmissionWebSocketHandler = transmissionWebSocketHandler;
         this.md5CollisionWebSocketHandler = md5CollisionWebSocketHandler;
     }
@@ -28,11 +31,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 
         webSocketHandlerRegistry.addHandler(this.transmissionWebSocketHandler, "/fileTransmissionServer")  //相等于@ServerEndPoin
-                .addInterceptors(new WebSocketHandshakeInterceptor())
+                .addInterceptors(webSocketHandshakeInterceptor)
                 .setAllowedOrigins("*");
 
         webSocketHandlerRegistry.addHandler(this.md5CollisionWebSocketHandler, "/md5CollisionServer")
-                .addInterceptors(new WebSocketHandshakeInterceptor())
+                .addInterceptors(webSocketHandshakeInterceptor)
                 .setAllowedOrigins("*");
 
     }

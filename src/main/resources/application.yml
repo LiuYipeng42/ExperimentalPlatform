@@ -51,7 +51,7 @@ server:
 
 logging:
   level:
-    root: info
+    root: debug
 
 #mybatis-plus:
 #  configuration:

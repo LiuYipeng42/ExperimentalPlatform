@@ -2,14 +2,10 @@ package com.guet.ExperimentalPlatform.WebSocketHandler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.guet.ExperimentalPlatform.entity.Student;
 import com.guet.ExperimentalPlatform.entity.StudyRecord;
 import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
-import com.guet.ExperimentalPlatform.pojo.UserInfo;
-import com.guet.ExperimentalPlatform.service.MessageService;
-import com.guet.ExperimentalPlatform.service.StudentService;
+import com.guet.ExperimentalPlatform.service.FileTransmissionService;
 import com.guet.ExperimentalPlatform.service.StudyRecordService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,43 +15,40 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.Collection;
 import java.util.Date;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 @Component
 public class TransmissionWebSocketHandler extends TextWebSocketHandler {
 
-    private static final ConcurrentHashMap<String, UserInfo> userInfo = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> onlineUser = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, WebSocketSession> userSession = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, TransmissionInfo> transmissionId = new ConcurrentHashMap<>();
 
-    private final MessageService messageService;
-    private final StudentService studentService;
+    private final FileTransmissionService fileTransmissionService;
     private final StudyRecordService studyRecordService;
 
     @Autowired
     private TransmissionWebSocketHandler(StudyRecordService studyRecordService,
-                                         StudentService studentService,
-                                         MessageService messageService) {
+                                         FileTransmissionService fileTransmissionService) {
         this.studyRecordService = studyRecordService;
-        this.messageService = messageService;
-        this.studentService = studentService;
+        this.fileTransmissionService = fileTransmissionService;
     }
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
+
+        long userId = (long) session.getAttributes().get("userId");
+        String userAccount = (String) session.getAttributes().get("userAccount");
 
         String messageJSON = message.getPayload();
         System.out.println(messageJSON);
         JSONObject messageJsonObject;
         String messageText;
 
-        String userAccount = (String) session.getAttributes().get("userAccount");
-        UserInfo userInfo = TransmissionWebSocketHandler.userInfo.get(userAccount);
-
         String toUserAccount;
-        UserInfo toUserInfo;
 
         if (StringUtils.isNotBlank(messageJSON)) {
             try {
@@ -65,20 +58,22 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
                 messageJsonObject.put("fromUserId", userAccount);
 
                 toUserAccount = messageJsonObject.getString("toUserId").strip();
-                toUserInfo = TransmissionWebSocketHandler.userInfo.get(toUserAccount);
                 messageText = messageJsonObject.getString("contentText");
 
-                messageService.saveMessage(messageText,
-                        userInfo.getUserId(), toUserInfo.getUserId(),
-                        transmissionId
-                );
-
                 //传送给对应toUserAccount用户的websocket
-                if (StringUtils.isNotBlank(toUserAccount) && TransmissionWebSocketHandler.userInfo.containsKey(toUserAccount)) {
-                    toUserInfo.getSession().sendMessage(new TextMessage(messageJsonObject.toJSONString()));
+                if (StringUtils.isNotBlank(toUserAccount) && userSession.containsKey(toUserAccount)) {
+                    userSession.get(toUserAccount).sendMessage(new TextMessage(messageJsonObject.toJSONString()));
                 } else {
                     System.out.println("请求的userAccount:" + toUserAccount + "不在该服务器上");
                 }
+
+                fileTransmissionService.saveMessage(
+                        messageText,
+                        userId,
+                        onlineUser.get(toUserAccount),
+                        transmissionId
+                );
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -89,62 +84,63 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
 
+        long userId = (long) session.getAttributes().get("userId");
         String userAccount = (String) session.getAttributes().get("userAccount");
 
-        long userId = studentService.getOne(
-                new QueryWrapper<Student>().eq("account", userAccount)
-        ).getId();
-
-        studyRecordService.save(
-                new StudyRecord().setStudentId(userId).setLoginTime(new Date())
-        );
-
+        onlineUser.put(userAccount, userId);
         //加入set中
-        userInfo.remove(userAccount);
-        userInfo.put(userAccount, new UserInfo().setUserId(userId).setSession(session));
+        userSession.remove(userAccount);
+        userSession.put(userAccount, session);
 
-        Set<String> users = userInfo.keySet();
+        Collection<WebSocketSession> userSessions = userSession.values();
 
-        for (String user : users) {
+        for (WebSocketSession othersSession : userSessions) {
             try {
-                if (!user.equals(userAccount)) {
+                if (othersSession != session) {
                     //通知其他用户，这个人上线了
-                    userInfo.get(user).getSession().sendMessage(new TextMessage("online " + userAccount));
+                    othersSession.sendMessage(new TextMessage("online " + userAccount));
                 } else {
                     //告诉自己有谁在线上
-                    userInfo.get(userAccount).getSession().sendMessage(new TextMessage(users.toString()));
+                    session.sendMessage(new TextMessage(onlineUser.keySet().toString()));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        studyRecordService.save(
+                new StudyRecord()
+                        .setStudentId(userId)
+                        .setStartTime(new Date())
+                        .setExperimentType(1)
+        );
+
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
 
+        long userId = (long) session.getAttributes().get("userId");
         String userAccount = (String) session.getAttributes().get("userAccount");
 
-        studyRecordService.update(
-                null,
-                new UpdateWrapper<StudyRecord>().set("logout_time", new Date())
-                        .eq("student_id", userInfo.get(userAccount).getUserId())
-                        .isNull("logout_time")
-        );
-
-        if (userInfo.containsKey(userAccount)) {
-            userInfo.remove(userAccount);
-            Set<String> users = userInfo.keySet();
-            for (String user : users) {
-                try {
-                    //通知其他用户，这个人离线了
-                    userInfo.get(user).getSession().sendMessage(new TextMessage("outline" + userAccount));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        onlineUser.remove(userAccount);
+        userSession.remove(userAccount);
+        Collection<WebSocketSession> userSessions = userSession.values();
+        for (WebSocketSession othersSession : userSessions) {
+            try {
+                //通知其他用户，这个人离线了
+                othersSession.sendMessage(new TextMessage("offline " + userAccount));
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
+
+        studyRecordService.update(
+                new UpdateWrapper<StudyRecord>().set("end_time", new Date())
+                        .eq("student_id", userId)
+                        .eq("experiment_type", 1)
+                        .isNull("end_time")
+        );
 
     }
 

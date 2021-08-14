@@ -24,15 +24,19 @@ public class LogInterceptor implements HandlerInterceptor {
                            Object handler, ModelAndView modelAndView){
 
         String key;
+        try {
+            HttpSession session = request.getSession();
 
-        HttpSession session = request.getSession();
+            Enumeration<String> attributes = session.getAttributeNames();
 
-        Enumeration<String> attributes = session.getAttributeNames();
+            while (attributes.hasMoreElements()){
+                key = attributes.nextElement();
+                System.out.println(key + ": " + session.getAttribute(key));
+            }
+        } catch (java.lang.IllegalStateException ignored){
 
-        while (attributes.hasMoreElements()){
-            key = attributes.nextElement();
-            System.out.println(key + ": " + session.getAttribute(key));
         }
+
 
         System.out.println("End Time: " + new Date());
         System.out.println("------------------------------------------------------");

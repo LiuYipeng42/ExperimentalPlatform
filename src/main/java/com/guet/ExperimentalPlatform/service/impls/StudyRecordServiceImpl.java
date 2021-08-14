@@ -7,6 +7,6 @@ import com.guet.ExperimentalPlatform.service.StudyRecordService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class StudyRecordServiceImpl  extends ServiceImpl<StudyRecordMapper, StudyRecord>
+public class StudyRecordServiceImpl extends ServiceImpl<StudyRecordMapper, StudyRecord>
         implements StudyRecordService {
 }

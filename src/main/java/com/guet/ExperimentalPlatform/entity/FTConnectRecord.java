@@ -8,8 +8,8 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-@TableName("connect_record")
-public class ConnectRecord{
+@TableName("FT_connect_record")
+public class FTConnectRecord {
 
     @TableId(type = IdType.AUTO)
     Long id;
@@ -22,7 +22,7 @@ public class ConnectRecord{
 
     String status;
 
-    public ConnectRecord(long sender, long receiver, Date connectTime) {
+    public FTConnectRecord(long sender, long receiver, Date connectTime) {
         this.senderId = sender;
         this.receiverId = receiver;
         this.connectTime = connectTime;

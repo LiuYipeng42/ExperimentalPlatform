@@ -19,17 +19,17 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student>
         implements StudentService {
 
     private StudentMapper studentMapper;
-    private StudyRecordMapper studyRecordMapper;
+//    private StudyRecordMapper studyRecordMapper;
 
     @Resource
     public void setStudentMapper(StudentMapper studentMapper) {
         this.studentMapper = studentMapper;
     }
 
-    @Resource
-    public void setStudyRecordMapper(StudyRecordMapper studyRecordMapper) {
-        this.studyRecordMapper = studyRecordMapper;
-    }
+//    @Resource
+//    public void setStudyRecordMapper(StudyRecordMapper studyRecordMapper) {
+//        this.studyRecordMapper = studyRecordMapper;
+//    }
 
     public String login(LoginForm loginForm) {
         Student student = studentMapper.selectOne(
@@ -40,13 +40,13 @@ public class StudentServiceImpl extends ServiceImpl<StudentMapper, Student>
             return "没有此用户";
         }
 
-        StudyRecord studyRecord = studyRecordMapper.selectOne(
-                new QueryWrapper<StudyRecord>().eq("student_id", student.getId()).isNull("logout_time")
-        );
-
-        if (studyRecord != null) {
-            return "此账号已登录";
-        }
+//        StudyRecord studyRecord = studyRecordMapper.selectOne(
+//                new QueryWrapper<StudyRecord>().eq("student_id", student.getId()).isNull("logout_time")
+//        );
+//
+//        if (studyRecord != null) {
+//            return "此账号已登录";
+//        }
 
         if (student.getPassword().equals(loginForm.password)) {
             return "success " + student.getId();

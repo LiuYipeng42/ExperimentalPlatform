@@ -25,10 +25,6 @@ public class RunCMD {
 
         Process process = runtime.exec(command);
 
-        try {
-            process.waitFor();
-        } catch (InterruptedException ignored){
-        }
         return CMDResult.getResult(process, -1);
     }
 

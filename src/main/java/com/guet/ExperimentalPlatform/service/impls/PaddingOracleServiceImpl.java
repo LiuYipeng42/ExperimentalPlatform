@@ -27,12 +27,12 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
         client = DockerClientBuilder.getInstance(config).build();
     }
 
-    public boolean createEnvironment(String userId, String imageName) {
+    public boolean createEnvironment(String containerName, String imageName) {
         CreateContainerResponse container;
         // 创建容器
 
         container = client.createContainerCmd(imageName)
-                .withName(userId).exec();
+                .withName(containerName).exec();
 
         String containerId = container.getId();
 
@@ -47,7 +47,7 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
 
         System.out.println(containerIP);
 
-        userIdContainer.put(userId,
+        userIdContainer.put(containerName,
                 new ContainerInfo()
                         .setContainerId(containerId)
                         .setContainerIP(containerIP)
@@ -55,18 +55,18 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
 
         // 复制文件
         FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/manual_attack.py",
-                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
+                "PaddingOracleFiles/ExperimentDataFile/" + containerName + "_manual_attack.py",
                 "\"containerIP\"", "\"" + containerIP +"\"");
 
         FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/auto_attack.py",
-                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
+                "PaddingOracleFiles/ExperimentDataFile/" + containerName + "_auto_attack.py",
                 "\"containerIP\"", "\"" + containerIP +"\"");
 
         return true;
     }
 
-    public void closeEnvironment(String userId){
-        ContainerInfo containerInfo = userIdContainer.get(userId);
+    public void closeEnvironment(String containerName){
+        ContainerInfo containerInfo = userIdContainer.get(containerName);
         if (containerInfo != null) {
 
             String containerId = containerInfo.getContainerId();
@@ -75,9 +75,9 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
             // 删除容器
             client.removeContainerCmd(containerId).exec();
             // 删除文件
-            userIdContainer.remove(userId);
-            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py").delete();
-            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py").delete();
+            userIdContainer.remove(containerName);
+            new File("PaddingOracleFiles/ExperimentDataFile/" + containerName + "_manual_attack.py").delete();
+            new File("PaddingOracleFiles/ExperimentDataFile/" + containerName + "_auto_attack.py").delete();
         }
 
     }
