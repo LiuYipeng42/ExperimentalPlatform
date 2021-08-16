@@ -71,9 +71,11 @@ public class RunAttack {
         }
 
         if(checkStatus.equals("success")){
+            System.out.println("python3 " + filePath);
+
             Process process = runtime.exec("python3 " + filePath);
 
-            result = CMDResult.getResult(process, 1);
+            result = CMDResult.getResult(process, -1);
 
             if (result.equals("")){
                 return "运行出错";

@@ -27,8 +27,10 @@ public class AlgorithmController {
     public JSONObject getPlaintext(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
         return JSON.parseObject(
-                RunCMD.runCMD("python3 src/main/resources/Algorithms/AES_ice.py encryption_plaintext "
-                + algorithmPara.getParam1() + " " + algorithmPara.getParam2())
+                RunCMD.runCMD(
+                        "python3 src/main/resources/Algorithms/AES_ice.py encryption_plaintext "
+                                + algorithmPara.getParam1() + " " + algorithmPara.getParam2()
+                )
         );
     }
 
