@@ -11,7 +11,7 @@ import javax.servlet.http.HttpSession;
 @RestController
 public class TimerController {
 
-    @GetMapping("/heartbeat?")
+    @GetMapping("/heartbeat")
     public void heartbeat(HttpServletRequest request,
                           String page){
         HttpSession session = request.getSession();
