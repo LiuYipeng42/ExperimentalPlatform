@@ -1,20 +1,16 @@
 package com.guet.ExperimentalPlatform.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
-import com.guet.ExperimentalPlatform.Utils.RunAttack;
+import com.guet.ExperimentalPlatform.Utils.RunPython;
 import com.guet.ExperimentalPlatform.entity.POAutoAttackRecord;
-import com.guet.ExperimentalPlatform.entity.StudyRecord;
 import com.guet.ExperimentalPlatform.service.POAutoAttackRecordService;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
-import com.guet.ExperimentalPlatform.service.StudyRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Date;
 
 
 @CrossOrigin
@@ -23,14 +19,12 @@ import java.util.Date;
 public class PaddingOracleController {
 
     private final PaddingOracleService paddingOracleService;
-    private final StudyRecordService studyRecordService;
     private final POAutoAttackRecordService poAutoAttackRecordService;
 
     @Autowired
-    public PaddingOracleController(PaddingOracleService paddingOracleService, StudyRecordService studyRecordService,
+    public PaddingOracleController(PaddingOracleService paddingOracleService,
                                    POAutoAttackRecordService poAutoAttackRecordService) {
         this.paddingOracleService = paddingOracleService;
-        this.studyRecordService = studyRecordService;
         this.poAutoAttackRecordService = poAutoAttackRecordService;
     }
 
@@ -49,25 +43,6 @@ public class PaddingOracleController {
             return false;
         }
 
-        if (
-                poAutoAttackRecordService.getOne(
-                        new QueryWrapper<POAutoAttackRecord>().select("student_id", String.valueOf(userId))
-                ) == null
-        ) {
-                poAutoAttackRecordService.save(
-                        new POAutoAttackRecord()
-                                .setStudentId(userId)
-                                .setAutoAttackTimes(0)
-                );
-        }
-
-        studyRecordService.save(
-                new StudyRecord()
-                        .setStudentId(userId)
-                        .setStartTime(new Date())
-                        .setExperimentType(2)
-        );
-
         return true;
 
     }
@@ -80,14 +55,6 @@ public class PaddingOracleController {
         try {
             paddingOracleService.closeEnvironment(
                     String.valueOf(userId)
-            );
-
-            studyRecordService.update(
-                    null,
-                    new UpdateWrapper<StudyRecord>().set("end_time", new Date())
-                            .eq("student_id", userId)
-                            .eq("experiment_type", 2)
-                            .isNull("end_time")
             );
 
             return true;
@@ -135,10 +102,9 @@ public class PaddingOracleController {
 
         long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
 
-        String result = RunAttack.runAttack(
-                "PaddingOracleFiles/ExperimentDataFile/" +
-                        userId +
-                        "_auto_attack.py"
+        String result = RunPython.run(
+                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
+                new String[]{"socket", "hexlify", "unhexlify"}
         );
 
         if (result.contains("Congraduations! you've got the plain!")) {
@@ -146,7 +112,7 @@ public class PaddingOracleController {
         } else {
             result += "\n获取正确密文失败!";
 
-            poAutoAttackRecordService.addOne(userId);
+//            poAutoAttackRecordService.save();
 
         }
 
@@ -159,10 +125,11 @@ public class PaddingOracleController {
 
         long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
 
-        return RunAttack.runAttack(
-                "PaddingOracleFiles/ExperimentDataFile/" +
-                        userId +
-                        "_manual_attack.py"
+        return RunPython.run(
+                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
+                "manualAttack",
+                0.84,
+                new String[]{"socket", "hexlify", "unhexlify"}
         );
 
     }

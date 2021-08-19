@@ -2,8 +2,6 @@ package com.guet.ExperimentalPlatform.WebSocketHandler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.guet.ExperimentalPlatform.entity.StudyRecord;
 import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
 import com.guet.ExperimentalPlatform.service.FileTransmissionService;
 import com.guet.ExperimentalPlatform.service.StudyRecordService;
@@ -16,7 +14,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -28,12 +25,9 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
     private static final ConcurrentHashMap<String, TransmissionInfo> transmissionId = new ConcurrentHashMap<>();
 
     private final FileTransmissionService fileTransmissionService;
-    private final StudyRecordService studyRecordService;
 
     @Autowired
-    private TransmissionWebSocketHandler(StudyRecordService studyRecordService,
-                                         FileTransmissionService fileTransmissionService) {
-        this.studyRecordService = studyRecordService;
+    private TransmissionWebSocketHandler(FileTransmissionService fileTransmissionService) {
         this.fileTransmissionService = fileTransmissionService;
     }
 
@@ -108,13 +102,6 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
             }
         }
 
-        studyRecordService.save(
-                new StudyRecord()
-                        .setStudentId(userId)
-                        .setStartTime(new Date())
-                        .setExperimentType(1)
-        );
-
     }
 
     @Override
@@ -134,13 +121,6 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
                 e.printStackTrace();
             }
         }
-
-        studyRecordService.update(
-                new UpdateWrapper<StudyRecord>().set("end_time", new Date())
-                        .eq("student_id", userId)
-                        .eq("experiment_type", 1)
-                        .isNull("end_time")
-        );
 
     }
 

@@ -13,7 +13,7 @@ public class CodeSimilarity {
                 j++;
                 count = 0;
             }
-            if (count >= 10) {
+            if (count >= 20) {
                 return j - count;
             }
         }
@@ -49,7 +49,7 @@ public class CodeSimilarity {
                         for (int i = originalIndex; i < originalLength; i++) {
                             for (int j = changedIndex; j < changedLength; j++) {
                                 if (originalFile.charAt(i) == changedFile.charAt(j)) {
-                                    for (count = 0; count < 10; count++) {
+                                    for (count = 0; count < 20; count++) {
                                         if (i + count < originalLength && j + count < changedLength) {
                                             if (originalFile.charAt(i + count) != changedFile.charAt(j + count)) {
                                                 break;

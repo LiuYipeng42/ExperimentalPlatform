@@ -18,7 +18,7 @@ public class AlgorithmController {
     public JSONObject Aes(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
         return JSON.parseObject(
-                RunCMD.runCMD("python3 Algorithms/AES.py "
+                RunCMD.execute("python3 Algorithms/AES.py "
                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2())
         );
     }
@@ -27,7 +27,7 @@ public class AlgorithmController {
     public JSONObject getPlaintext(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
         return JSON.parseObject(
-                RunCMD.runCMD(
+                RunCMD.execute(
                         "python3 Algorithms/AES_ice.py encryption_plaintext "
                                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2()
                 )
@@ -38,7 +38,7 @@ public class AlgorithmController {
     public JSONObject getSecretKey(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
         return JSON.parseObject(
-                RunCMD.runCMD("python3 Algorithms/AES_ice.py encryption_secret_key "
+                RunCMD.execute("python3 Algorithms/AES_ice.py encryption_secret_key "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2())
         );
     }
@@ -46,49 +46,49 @@ public class AlgorithmController {
     @PostMapping("/aes/decryption")
     public String AESDecryption(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/AES_For_Result.py decryption "
+        return RunCMD.execute("python3 Algorithms/AES_For_Result.py decryption "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
     }
 
     @PostMapping("/aes/encryption")
     public String AESEncryption(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/AES_For_Result.py encryption "
+        return RunCMD.execute("python3 Algorithms/AES_For_Result.py encryption "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
     }
 
     @PostMapping("/caesar")
     public String Caesar(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/Caesar.py "
+        return RunCMD.execute("python3 Algorithms/Caesar.py "
                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
     }
 
     @PostMapping("/rsad")
     public String getRSAd(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/get_RSA_d.py "
+        return RunCMD.execute("python3 Algorithms/get_RSA_d.py "
                 + algorithmPara.getP() + " " + algorithmPara.getQ() + " " + algorithmPara.getE());
     }
 
     @PostMapping("/rsaCalculateC")
     public String rsaCalculateC(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/rsa_calculate.py calculate_c "
+        return RunCMD.execute("python3 Algorithms/rsa_calculate.py calculate_c "
                 + algorithmPara.getM() + " " + algorithmPara.getE() + " " + algorithmPara.getN());
     }
 
     @PostMapping("/rsaCalculateM")
     public String rsaCalculateM(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/rsa_calculate.py calculate_m "
+        return RunCMD.execute("python3 Algorithms/rsa_calculate.py calculate_m "
                 + algorithmPara.getC() + " " + algorithmPara.getD() + " " + algorithmPara.getN());
     }
 
     @PostMapping("/hash")
     public String hash(@RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        return RunCMD.runCMD("python3 Algorithms/Hash.py "
+        return RunCMD.execute("python3 Algorithms/Hash.py "
                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
     }
 

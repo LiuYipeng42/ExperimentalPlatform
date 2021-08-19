@@ -6,13 +6,13 @@ import java.io.*;
 
 
 public class FileOperation {
-    public static void copyAndReplace(String src, String dst, String regex, String replacement){
+    public static void copyAndReplace(String src, String dst, String regex, String replacement) {
         writeFile(dst,
                 readFile(src)
                         .replaceFirst(regex, replacement));
     }
 
-    public static void copyFile(String src, String dst){
+    public static void copyFile(String src, String dst) {
         writeFile(dst, readFile(src));
     }
 
@@ -54,22 +54,21 @@ public class FileOperation {
         }
     }
 
-    public static void savePostText(HttpServletRequest request, String filePath){
+    private static String getPostData(HttpServletRequest request) {
         ServletInputStream inputStream = null;
         int len;
 
         try {
             inputStream = request.getInputStream();
             StringBuilder stringBuilder = new StringBuilder();
-            byte[] buf = new byte[1024];
+
+            byte[] buf = new byte[10240];
+
             while ((len = inputStream.read(buf)) != -1) {
                 stringBuilder.append(new String(buf, 0, len));
             }
 
-            writeFile(
-                    filePath,
-                    stringBuilder.toString()
-            );
+            return stringBuilder.toString();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,6 +81,59 @@ public class FileOperation {
                 e.printStackTrace();
             }
         }
+        return "";
+    }
+
+
+    public static void savePostText(HttpServletRequest request, String filePath) {
+
+        writeFile(
+                filePath,
+                getPostData(request)
+        );
+
+    }
+
+    public static void savePostPythonFile(HttpServletRequest request, String filePath) {
+
+        String[] codeLines = getPostData(request).split("\n");
+
+        StringBuilder processedCode = new StringBuilder();
+        int index;
+        String line;
+
+        for (index = 0; index < codeLines.length; index++) {
+            line = codeLines[index];
+            if (!line.contains("import") && line.replace(" ", "").length() > 3)
+                break;
+            processedCode.append(line).append("\n");
+        }
+
+        processedCode.append("import traceback, sys\n\n");
+        processedCode.append("try:\n");
+
+        for (; index < codeLines.length; index++) {
+            line = codeLines[index];
+            if (line.equals("")) {
+                processedCode.append(line).append("\n");
+            } else {
+                processedCode.append("    ").append(line).append("\n");
+            }
+
+        }
+
+        processedCode.append("\nexcept:\n" +
+                "    exception = \"\"\n" +
+                "    value, tb = sys.exc_info()[1:]\n" +
+                "    for line in traceback.TracebackException(type(value), value, tb, limit=None).format(chain=True):\n" +
+                "        exception += line\n" +
+                "    print(exception)");
+
+        writeFile(
+                filePath,
+                processedCode.toString()
+        );
+
     }
 
 }

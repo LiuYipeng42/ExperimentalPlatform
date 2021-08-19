@@ -12,7 +12,7 @@ public class MD5CollisionServiceImpl implements MD5CollisionService {
 
     @Override
     public void createEnvironment(String userId) throws IOException {
-        RunCMD.runCMD(
+        RunCMD.execute(
                 "cp -r " +
                         "MD5CollisionFiles/OriginalFiles " +
                         "MD5CollisionFiles/ExperimentDataFile/" + userId);
@@ -20,7 +20,8 @@ public class MD5CollisionServiceImpl implements MD5CollisionService {
 
     @Override
     public void closeEnvironment(String userId) throws IOException {
-        RunCMD.runCMD(
-                "rm -rf " + "MD5CollisionFiles/ExperimentDataFile/" + userId);
+        RunCMD.execute(
+                "rm -rf " +
+                        "MD5CollisionFiles/ExperimentDataFile/" + userId);
     }
 }

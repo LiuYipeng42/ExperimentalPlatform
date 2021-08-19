@@ -6,7 +6,7 @@ import java.io.*;
 
 public class RunCMD {
 
-    public static String runCMD(String command, String path, WebSocketSession session) throws IOException, InterruptedException {
+    public static void execute(String command, String path, WebSocketSession session) throws IOException {
 
         Runtime runtime = Runtime.getRuntime();
 
@@ -17,10 +17,9 @@ public class RunCMD {
         process = runtime.exec(cmd);
         CMDResult.getResult(process, session, -1);
 
-        return "hhhhhhhhhhhhhhhhhhhh";
     }
 
-    public static String runCMD(String command, String path) throws IOException {
+    public static String execute(String command, String path) throws IOException {
 
         Runtime runtime = Runtime.getRuntime();
 
@@ -33,8 +32,15 @@ public class RunCMD {
         return CMDResult.getResult(process, -1);
     }
 
+    public static String execute(String command, int timeOut) throws IOException {
+        Runtime runtime = Runtime.getRuntime();
 
-    public static String runCMD(String command) throws IOException {
+        Process process = runtime.exec(command);
+
+        return CMDResult.getResult(process, timeOut);
+    }
+
+    public static String execute(String command) throws IOException {
         Runtime runtime = Runtime.getRuntime();
 
         Process process = runtime.exec(command);
