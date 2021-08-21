@@ -124,6 +124,7 @@ public class RunPython {
 
         if (forceContains != null) {
             for (String s : forceContains) {
+                System.out.println(pythonFile.contains(s));
                 if (!pythonFile.contains(s)) {
                     return "不可修改原有代码";
                 }
@@ -147,7 +148,7 @@ public class RunPython {
         String result = RunCMD.execute("python3 " + filePath, 1);
 
         if (result.equals("")) {
-            return "运行出错";
+            return "编译期编译出错";
         }
 
         return result;

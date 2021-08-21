@@ -31,9 +31,3 @@ def get_hash(data: str, type: str):  # 对data加密
 
 print(get_hash(*sys.argv[1:]))
 
-
-# test_str = "sewqrdfscdfsdfwerqwoi_0"
-# print(get_hash(test_str,"hash256"))
-# # 6ec8a1b2fd0254854ae0a3721c866b11c7b781de29cb0a58359cb0b7a3233514
-# print(get_hash(test_str, "hash1"))
-# 6ec8a1b2fd0254854ae0a3721c866b11c7b781de29cb0a58359cb0b7a3233514

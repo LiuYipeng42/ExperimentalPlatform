@@ -53,12 +53,13 @@ if __name__ == '__main__':
         text += random.choice(['桂', '林', '电', '子', '科', '技', '大', '学'])
         i += 1
     rsa = Rsa_test()
+    print("明文：", text)
     encryText = rsa.encrypt_rsa(text)
-    print(encryText)
-    print(rsa.decrypt_rsa(encryText))
+    print("公钥：", rsa.public_key)
+    print("私钥：", rsa.private_key)
+    print("密文：", encryText)
+    print("解密出的明文：", rsa.decrypt_rsa(encryText))
 
     sign_text = rsa.sign_rsa(text)
-    print(sign_text)
-    print(rsa.verify(sign_text, text))
-
-
+    print("数字签名：", sign_text)
+    print("签名验证结果：", rsa.verify(sign_text, text))
