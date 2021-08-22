@@ -46,11 +46,13 @@ public class LoadForceContains {
                 if (line.contains("import"))
                     continue;
 
-                if (line.equals("")) {
-                    part.append(line).append("\n");
-                }else {
-                    part.append("    ").append(line).append("\n");
-                }
+                part.append(line).append("\n");
+
+//                if (line.equals("")) {
+//                    part.append(line).append("\n");
+//                }else {
+//                    part.append("    ").append(line).append("\n");
+//                }
 
                 if (line.contains("# --------------------- START ---------------------")){
                     containsList.add(deleteEnter(part.toString()));

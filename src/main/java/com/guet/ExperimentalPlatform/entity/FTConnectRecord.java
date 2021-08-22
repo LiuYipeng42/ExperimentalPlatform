@@ -12,15 +12,15 @@ import java.util.Date;
 public class FTConnectRecord {
 
     @TableId(type = IdType.AUTO)
-    Long id;
+    private Long id;
 
-    long senderId;
+    private long senderId;
 
-    long receiverId;
+    private long receiverId;
 
-    Date connectTime;
+    private Date connectTime;
 
-    String status;
+    private String status;
 
     public FTConnectRecord(long sender, long receiver, Date connectTime) {
         this.senderId = sender;

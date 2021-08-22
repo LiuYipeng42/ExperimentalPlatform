@@ -1,16 +1,16 @@
 package com.guet.ExperimentalPlatform.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
 import com.guet.ExperimentalPlatform.Utils.RunPython;
-import com.guet.ExperimentalPlatform.entity.POAutoAttackRecord;
-import com.guet.ExperimentalPlatform.service.POAutoAttackRecordService;
+import com.guet.ExperimentalPlatform.entity.RunCodesRecord;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
+import com.guet.ExperimentalPlatform.service.RunCodesRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Date;
 
 
 @CrossOrigin
@@ -19,19 +19,19 @@ import java.io.IOException;
 public class PaddingOracleController {
 
     private final PaddingOracleService paddingOracleService;
-    private final POAutoAttackRecordService poAutoAttackRecordService;
+    private final RunCodesRecordService runCodesRecordService;
 
     @Autowired
     public PaddingOracleController(PaddingOracleService paddingOracleService,
-                                   POAutoAttackRecordService poAutoAttackRecordService) {
+                                   RunCodesRecordService runCodesRecordService) {
         this.paddingOracleService = paddingOracleService;
-        this.poAutoAttackRecordService = poAutoAttackRecordService;
+        this.runCodesRecordService = runCodesRecordService;
     }
 
     @GetMapping("/createEnvironment")
     public boolean createPaddingOracleEnvironment(HttpServletRequest request) {
 
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
+        long userId = (long) request.getSession().getAttribute("userId");
 
         try {
             paddingOracleService.createEnvironment(
@@ -50,7 +50,7 @@ public class PaddingOracleController {
     @GetMapping("/closeEnvironment")
     public boolean closePaddingOracleEnvironment(HttpServletRequest request) {
 
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
+        long userId = (long) request.getSession().getAttribute("userId");
 
         try {
             paddingOracleService.closeEnvironment(
@@ -68,7 +68,7 @@ public class PaddingOracleController {
     public String getPythonFile(HttpServletRequest request,
                                 @PathVariable("fileName") String fileName) {
 
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
+        long userId = (long) request.getSession().getAttribute("userId");
 
         return FileOperation.readFile(
                 "PaddingOracleFiles/ExperimentDataFile/" +
@@ -80,57 +80,49 @@ public class PaddingOracleController {
 
     }
 
-    @PostMapping("/saveFile/{fileName}")
-    public void savePythonFile(HttpServletRequest request,
-                               @PathVariable("fileName") String fileName) {
-
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
-
-        FileOperation.savePostText(
-                request,
-                "PaddingOracleFiles/ExperimentDataFile/" +
-                        userId +
-                        "_" +
-                        fileName +
-                        ".py"
-        );
-
-    }
-
-    @GetMapping("/auto_attack")
+    @PostMapping("/auto_attack")
     public String runAutoAttack(HttpServletRequest request) throws IOException {
 
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
+        long userId = (long) request.getSession().getAttribute("userId");
+        RunCodesRecord runCodesRecord;
+        String result;
+        String status;
 
-        String result = RunPython.run(
-                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
-                new String[]{"socket", "hexlify", "unhexlify"}
+        runCodesRecord = RunPython.runPostCodes(
+                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
+                "2", new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
+
+        result = runCodesRecord.getResult();
 
         if (result.contains("Congraduations! you've got the plain!")) {
             result += "\n已获取正确密文!";
+            status = "success";
         } else {
             result += "\n获取正确密文失败!";
-
-//            poAutoAttackRecordService.save();
-
+            status = "fail";
         }
+
+        runCodesRecordService.save(runCodesRecord.setStudentId(userId).setStatus(status));
 
         return result;
 
     }
 
-    @GetMapping("/manual_attack")
+    @PostMapping("/manual_attack")
     public String runManualAttack(HttpServletRequest request) throws IOException {
 
-        long userId = Long.parseLong((String) request.getSession().getAttribute("userId"));
+        long userId = (long) request.getSession().getAttribute("userId");
 
-        return RunPython.run(
-                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
-                "manualAttack",
-                0.84,
-                new String[]{"socket", "hexlify", "unhexlify"}
+        RunCodesRecord result = RunPython.runPostCodes(
+                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
+                "1", 0.84,
+                new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
+
+        runCodesRecordService.save(result.setStudentId(userId));
+
+        return result.getResult();
 
     }
 

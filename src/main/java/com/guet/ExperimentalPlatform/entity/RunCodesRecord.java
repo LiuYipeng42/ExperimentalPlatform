@@ -1,5 +1,6 @@
 package com.guet.ExperimentalPlatform.entity;
 
+
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -10,18 +11,21 @@ import java.util.Date;
 
 @Data
 @Accessors(chain = true)
-@TableName("study_record")
-public class StudyRecord {
+@TableName("run_codes_record")
+public class RunCodesRecord {
+
     @TableId(type = IdType.AUTO)
     private Long id;
 
     private long studentId;
 
-    private long loginId;
+    private String codeType;
 
-    private int experimentType;
+    private String code;
 
-    private Date startTime;
+    private String result;
 
-    private Date endTime;
+    private String status;
+
+    private Date runningDatetime;
 }

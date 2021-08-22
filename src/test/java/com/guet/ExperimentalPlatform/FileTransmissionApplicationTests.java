@@ -18,7 +18,7 @@ public class FileTransmissionApplicationTests {
 
     //    @Test
     public static void main(String[] args) throws IOException {
-        String[] aesForceContains = LoadForceContains.load("CodeTest/FilesForCopy/aes.py");
+        String[] aesForceContains = LoadForceContains.load("CodeTest/FilesForCopy/hash.py");
 
         for (String s: aesForceContains) {
             System.out.println("——————————————————————————————————————————————————————————————————");
@@ -26,12 +26,10 @@ public class FileTransmissionApplicationTests {
             System.out.println("——————————————————————————————————————————————————————————————————");
         }
 
+        System.out.println(FileOperation.readFile("CodeTest/HashRunningCodes/" + 10 + ".py"));
+
         System.out.println(
-                RunPython.run(
-                        "CodeTest/AESRunningCodes/" + 10 + ".py",
-                        new String[]{"AES", "b2a_hex", "a2b_hex", "traceback"},
-                        aesForceContains
-                )
+
         );
     }
 

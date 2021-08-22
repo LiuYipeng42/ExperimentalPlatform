@@ -18,21 +18,27 @@ import java.util.HashMap;
 @RestController
 public class TimerController {
 
-    StudyRecordService studyRecordService;
-    HashMap<String, String> pageType;
+    private final StudyRecordService studyRecordService;
+
+    private static final HashMap<String, String> pageType = new HashMap<>();
+
+    static {
+        pageType.put("fileTransmission", "1");
+        pageType.put("paddingOracle", "2");
+        pageType.put("md5Collision", "3");
+        pageType.put("rsa", "4");
+        pageType.put("hash", "5");
+        pageType.put("aes", "6");
+        pageType.put("aesProcedure", "7");
+        pageType.put("aesAvalanche", "8");
+        pageType.put("rsaCoding", "9");
+        pageType.put("hashCoding", "10");
+        pageType.put("aesCoding", "11");
+    }
 
     @Autowired
     public TimerController(StudyRecordService studyRecordService) {
         this.studyRecordService = studyRecordService;
-        this.pageType = new HashMap<>();
-        this.pageType.put("fileTransmission", "1");
-        this.pageType.put("paddingOracle", "2");
-        this.pageType.put("md5Collision", "3");
-        this.pageType.put("rsa", "4");
-        this.pageType.put("hash", "5");
-        this.pageType.put("aes", "6");  // aes加解密
-        this.pageType.put("aesProcedure", "7");  // aes过程
-        this.pageType.put("aesAvalanche", "8");  // aes雪崩
     }
 
     @GetMapping("/heartbeat")
@@ -44,13 +50,16 @@ public class TimerController {
         String presentPage = (String) session.getAttribute("page");
 
         long userId;
+        long loginId;
         String presentPageRecordId;
         String nextPageRecordId;
 
         if (!nextPage.equals(presentPage)) {
             // 页面发生切换
 
-            userId = Long.parseLong((String) session.getAttribute("userId"));
+            userId = (long) session.getAttribute("userId");
+
+            loginId = (long) session.getAttribute("loginId");
 
             presentPageRecordId = (String) session.getAttribute(presentPage + "RecordId");
 
@@ -63,6 +72,7 @@ public class TimerController {
                                 .set("end_time", new Date())
                                 .eq("id", presentPageRecordId)
                                 .eq("student_id", userId)
+                                .eq("login_id", loginId)
                                 .eq("experiment_type", pageType.get(presentPage))
                 );
             }
@@ -73,6 +83,7 @@ public class TimerController {
                 // 以前从没有访问过这个页面，插入访问数据
                 StudyRecord studyRecord = new StudyRecord()
                         .setStudentId(userId)
+                        .setLoginId(loginId)
                         .setStartTime(new Date())
                         .setExperimentType(Integer.parseInt(pageType.get(nextPage)));
 

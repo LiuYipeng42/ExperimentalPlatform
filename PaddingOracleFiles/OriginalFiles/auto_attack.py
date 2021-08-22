@@ -30,7 +30,9 @@ class PaddingOracle:
 
 
 if __name__ == "__main__":
-    oracle = PaddingOracle("containerIP", 6000)
     # 在此处写代码，直接输出密文
+    oracle = PaddingOracle("containerIP", 6000)
+    # --------------------- START ---------------------
 
+    # ---------------------- END ----------------------
 

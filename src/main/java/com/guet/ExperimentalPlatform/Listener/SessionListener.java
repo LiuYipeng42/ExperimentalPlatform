@@ -30,7 +30,7 @@ public class SessionListener implements HttpSessionListener {
     @Autowired
     public SessionListener(StudyRecordService studyRecordService,
                            PaddingOracleService paddingOracleService,
-                           MD5CollisionService md5CollisionService){
+                           MD5CollisionService md5CollisionService) {
         this.studyRecordService = studyRecordService;
         this.paddingOracleService = paddingOracleService;
         this.md5CollisionService = md5CollisionService;
@@ -45,11 +45,12 @@ public class SessionListener implements HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent arg0) {
 
-        HttpSession session =  arg0.getSession();
+        HttpSession session = arg0.getSession();
 
         getAttributes(session);
 
-        String userId = (String) session.getAttribute("userId");
+        String userId = String.valueOf((long) session.getAttribute("userId"));
+        long loginId = (long) session.getAttribute("loginId");
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
@@ -57,9 +58,10 @@ public class SessionListener implements HttpSessionListener {
 
         studyRecordService.update(
                 new UpdateWrapper<StudyRecord>()
-                .set("end_time", calendar.getTime())
-                .isNull("end_time")
-                .eq("student_id", userId)
+                        .set("end_time", calendar.getTime())
+                        .isNull("end_time")
+                        .eq("student_id", userId)
+                        .eq("login_id", loginId)
         );
 
         md5CollisionService.closeEnvironment(userId);

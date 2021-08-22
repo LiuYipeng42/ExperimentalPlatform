@@ -54,7 +54,7 @@ public class FileOperation {
         }
     }
 
-    private static String getPostData(HttpServletRequest request) {
+    public static String getPostData(HttpServletRequest request) {
         ServletInputStream inputStream = null;
         int len;
 
@@ -85,54 +85,16 @@ public class FileOperation {
     }
 
 
-    public static void savePostText(HttpServletRequest request, String filePath) {
+    public static String savePostText(HttpServletRequest request, String filePath) {
+
+        String codes = getPostData(request);
 
         writeFile(
                 filePath,
-                getPostData(request)
+                codes
         );
 
-    }
-
-    public static void savePostPythonFile(HttpServletRequest request, String filePath) {
-
-        String[] codeLines = getPostData(request).split("\n");
-
-        StringBuilder processedCode = new StringBuilder();
-        int index;
-        String line;
-
-        for (index = 0; index < codeLines.length; index++) {
-            line = codeLines[index];
-            if (!line.contains("import") && line.replace(" ", "").length() > 3)
-                break;
-            processedCode.append(line).append("\n");
-        }
-
-        processedCode.append("import traceback, sys\n\n");
-        processedCode.append("try:\n");
-
-        for (; index < codeLines.length; index++) {
-            line = codeLines[index];
-            if (line.equals("")) {
-                processedCode.append(line).append("\n");
-            } else {
-                processedCode.append("    ").append(line).append("\n");
-            }
-
-        }
-
-        processedCode.append("\nexcept:\n" +
-                "    exception = \"\"\n" +
-                "    value, tb = sys.exc_info()[1:]\n" +
-                "    for line in traceback.TracebackException(type(value), value, tb, limit=None).format(chain=True):\n" +
-                "        exception += line\n" +
-                "    print(exception)");
-
-        writeFile(
-                filePath,
-                processedCode.toString()
-        );
+        return codes;
 
     }
 

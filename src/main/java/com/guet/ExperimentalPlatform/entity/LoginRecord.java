@@ -6,16 +6,16 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Date;
 
 @Data
 @Accessors(chain = true)
-@TableName("PO_auto_attack_record")
-public class POAutoAttackRecord {
-
+@TableName("login_record")
+public class LoginRecord {
     @TableId(type = IdType.AUTO)
-    private long id;
+    private Long id;
 
-    private long studentId;
+    private long StudentId;
 
-    private int autoAttackTimes;
+    private Date loginTime;
 }

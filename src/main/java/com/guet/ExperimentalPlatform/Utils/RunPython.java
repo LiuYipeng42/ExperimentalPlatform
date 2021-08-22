@@ -1,7 +1,11 @@
 package com.guet.ExperimentalPlatform.Utils;
 
+import com.guet.ExperimentalPlatform.entity.RunCodesRecord;
+
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.stream.Collectors;
@@ -11,10 +15,10 @@ public class RunPython {
     private static final HashMap<String, String> originalFiles = new HashMap<>();
 
     static {
-        originalFiles.put("manualAttack", loadOriginalFile("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
-        originalFiles.put("autoAttack", loadOriginalFile("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
-        originalFiles.put("aes", loadOriginalFile("CodeTest/FilesForCopy/aes.py"));
-        originalFiles.put("rsa", loadOriginalFile("CodeTest/FilesForCopy/rsa.py"));
+        originalFiles.put("1", loadOriginalFile("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
+        originalFiles.put("2", loadOriginalFile("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
+        originalFiles.put("4", loadOriginalFile("CodeTest/FilesForCopy/aes.py"));
+        originalFiles.put("3", loadOriginalFile("CodeTest/FilesForCopy/rsa.py"));
     }
 
     private static String loadOriginalFile(String filePath) {
@@ -41,8 +45,8 @@ public class RunPython {
                 String[] part2s = Arrays.stream(line.substring(importIndex + 7).split(","))
                         .map(String::strip).toArray(String[]::new);
 
-                for (String part2: part2s) {
-                    if(!set.contains(part1 + ":" + part2.split(" as ")[0])){
+                for (String part2 : part2s) {
+                    if (!set.contains(part1 + ":" + part2.split(" as ")[0])) {
                         System.out.println(set.contains(part1 + ":" + part2.split(" as ")[0]));
                         return false;
                     }
@@ -74,19 +78,12 @@ public class RunPython {
 
     private static String limitImportAndFormat(String changedPythonFile, String[] libs) {
 
-        HashSet<String> set = new HashSet<>(Arrays.asList(libs));
+        if (!limitImport(libs, changedPythonFile)){
+            return "不可import其他库";
+        }
 
-        int i;
         StringBuilder reduceNotes = new StringBuilder();
         for (String line : changedPythonFile.split("\n")) {
-            i = line.indexOf("import");
-            if (i != -1) {
-                for (String s : line.substring(i + 6).split(",")) {
-                    if (!set.contains(s.strip())) {
-                        return "不可import其他库";
-                    }
-                }
-            }
             if (!line.contains("#")) {
                 reduceNotes.append(line);
             }
@@ -110,6 +107,8 @@ public class RunPython {
             return "代码过多";
         }
 
+        System.out.println(originalFiles.get(codeType));
+
         if (codeSimilarity > 0 &&
                 CodeSimilarity.calculate(originalFiles.get(codeType), changedPythonFile) < codeSimilarity) {
             return "代码修改过多";
@@ -119,8 +118,8 @@ public class RunPython {
     }
 
     private static String checkCodes(String pythonFile,
-                                     String[] libs,
-                                     String[] forceContains) {
+                                     String[] forceContains,
+                                     String[] libs) {
 
         if (forceContains != null) {
             for (String s : forceContains) {
@@ -142,50 +141,118 @@ public class RunPython {
         return "success";
     }
 
+    public static void addTracebackCode(String codes, String filePath) {
+
+        String[] codeLines = codes.split("\n");
+
+        StringBuilder processedCode = new StringBuilder();
+        int index;
+        String line;
+
+        for (index = 0; index < codeLines.length; index++) {
+            line = codeLines[index];
+            if (!line.contains("import") && line.replace(" ", "").length() > 3)
+                break;
+            processedCode.append(line).append("\n");
+        }
+
+        processedCode.append("import traceback, sys\n\n");
+        processedCode.append("try:\n");
+
+        for (; index < codeLines.length; index++) {
+            line = codeLines[index];
+            if (line.equals("")) {
+                processedCode.append(line).append("\n");
+            } else {
+                processedCode.append("    ").append(line).append("\n");
+            }
+
+        }
+
+        processedCode.append("\nexcept:\n" +
+                "    exception = \"\"\n" +
+                "    value, tb = sys.exc_info()[1:]\n" +
+                "    for line in traceback.TracebackException(type(value), value, tb, limit=None).format(chain=True):\n" +
+                "        exception += line\n" +
+                "    print(exception)");
+
+        FileOperation.writeFile(
+                filePath,
+                processedCode.toString()
+        );
+
+    }
+
     private static String getResult(String filePath) throws IOException {
         System.out.println("python3 " + filePath);
 
         String result = RunCMD.execute("python3 " + filePath, 1);
 
         if (result.equals("")) {
-            return "编译期编译出错";
+            return "无输出";
         }
 
         return result;
     }
 
-    public static String run(String filePath, String codeType, double codeSimilarity, String[] libs) throws IOException {
+    public static RunCodesRecord runPostCodes(HttpServletRequest request, String filePath, String codeType,
+                                              double codeSimilarity, String[] libs) throws IOException {
         String checkStatus;
 
-        checkStatus = checkCodes(FileOperation.readFile(filePath), codeType, codeSimilarity, libs);
+        String codes = FileOperation.savePostText(request, filePath);
+
+        String result;
+
+        checkStatus = checkCodes(codes, codeType, codeSimilarity, libs);
 
         if (checkStatus.equals("success")) {
-            return getResult(filePath);
+            result = getResult(filePath);
         } else {
-            return checkStatus;
-        }
-    }
-
-    public static String run(String filePath, String[] libs) throws IOException {
-        String checkStatus;
-
-        checkStatus = checkCodes(FileOperation.readFile(filePath), libs, null);
-
-        if (checkStatus.equals("success")) {
-            return getResult(filePath);
-        } else {
-            return checkStatus;
+            result = checkStatus;
         }
 
+        return new RunCodesRecord()
+                .setCodeType(codeType)
+                .setCode(codes)
+                .setResult(result)
+                .setRunningDatetime(new Date());
+
     }
 
-    public static String run(String filePath, String[] libs, String[] forceContains) throws IOException {
+    public static RunCodesRecord runPostCodes(HttpServletRequest request, String filePath, String codeType,
+                                              String[] libs) throws IOException {
         String checkStatus;
 
-        checkStatus = checkCodes(FileOperation.readFile(filePath), libs, forceContains);
+        String codes = FileOperation.savePostText(request, filePath);
+
+        String result;
+
+        checkStatus = checkCodes(codes, null, libs);
 
         if (checkStatus.equals("success")) {
-            return getResult(filePath);
+            result = getResult(filePath);
+        } else {
+            result = checkStatus;
+        }
+
+        return new RunCodesRecord()
+                .setCodeType(codeType)
+                .setCode(codes)
+                .setResult(result)
+                .setRunningDatetime(new Date());
+    }
+
+    public static String runAndGetTraceback(String codes, String dstFilePath, String[] libs, String[] forceContains)
+            throws IOException {
+
+        String checkStatus;
+
+        checkStatus = checkCodes(codes, forceContains, libs);
+
+        addTracebackCode(codes, dstFilePath);
+
+        if (checkStatus.equals("success")) {
+            return getResult(dstFilePath);
         } else {
             return checkStatus;
         }

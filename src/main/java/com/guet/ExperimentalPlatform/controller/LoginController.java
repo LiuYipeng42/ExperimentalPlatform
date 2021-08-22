@@ -21,15 +21,15 @@ public class LoginController {
 
     @PostMapping("/login")
     public String login(HttpServletRequest request, @RequestBody LoginForm loginForm) {
-        String loginResult = studentService.login(loginForm);
+        String[] loginResult = studentService.login(loginForm).split(" ");
 
-        if (loginResult.contains("success")) {
+        if (loginResult[0].equals("success")) {
             HttpSession session = request.getSession();
-            String userId = String.valueOf(loginResult.split(" ")[1]);
-            session.setAttribute("userId", userId);
-            loginResult = "success";
+            session.setAttribute("userId", Long.valueOf(loginResult[1]));
+            session.setAttribute("loginId", Long.valueOf(loginResult[2]));
         }
-        return loginResult;
+
+        return loginResult[0];
     }
 
 }
