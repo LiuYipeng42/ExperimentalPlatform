@@ -45,39 +45,47 @@ public class SessionListener implements HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent arg0) {
 
-        HttpSession session = arg0.getSession();
+        try {
 
-        getAttributes(session);
+            HttpSession session = arg0.getSession();
 
-        String userId = String.valueOf((long) session.getAttribute("userId"));
-        long loginId = (long) session.getAttribute("loginId");
+            getAttributes(session);
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 10);
+            long userId = (long) session.getAttribute("userId");
 
-        studyRecordService.update(
-                new UpdateWrapper<StudyRecord>()
-                        .set("end_time", calendar.getTime())
-                        .isNull("end_time")
-                        .eq("student_id", userId)
-                        .eq("login_id", loginId)
-        );
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 30);
 
-        md5CollisionService.closeEnvironment(userId);
-        paddingOracleService.closeEnvironment(userId);
+            studyRecordService.update(
+                    new UpdateWrapper<StudyRecord>()
+                            .set("end_time", new Date())
+                            .eq("student_id", userId)
+                            .isNull("end_time")
+            );
 
-        System.out.println("User " + userId + " logout!");
+            md5CollisionService.closeEnvironment(String.valueOf(userId));
+            paddingOracleService.closeEnvironment(String.valueOf(userId));
+
+            System.out.println("User " + userId + " logout!");
+        } catch (Exception e){
+            System.out.println("----------");
+            e.printStackTrace();
+            System.out.println("----------");
+
+        }
+
     }
 
     private void getAttributes(HttpSession session) {
 
         Enumeration<String> e = session.getAttributeNames();
         String key;
+        System.out.println("----------");
         while (e.hasMoreElements()) {
             key = e.nextElement();
             System.out.println(key + ": " + session.getAttribute(key));
         }
-
+        System.out.println("----------");
     }
 }

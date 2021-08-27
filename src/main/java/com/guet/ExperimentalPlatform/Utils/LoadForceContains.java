@@ -7,20 +7,20 @@ import java.util.ArrayList;
 
 public class LoadForceContains {
 
-    public static String deleteEnter(String text){
+    public static String deleteEnter(String text) {
         int len = text.length();
         int beginIndex = 0;
         int endIndex = len;
 
         for (int i = 0; i < len; i++) {
-            if (text.charAt(i) != '\n'){
+            if (text.charAt(i) != '\n') {
                 beginIndex = i;
                 break;
             }
         }
 
         for (int i = len - 1; i > -1; i--) {
-            if (text.charAt(i) != '\n'){
+            if (text.charAt(i) != '\n') {
                 endIndex = i;
                 break;
             }
@@ -30,7 +30,7 @@ public class LoadForceContains {
 
     }
 
-    public static String[] load(String filePath){
+    public static String[] load(String filePath) {
 
         ArrayList<String> containsList = new ArrayList<>();
 
@@ -38,7 +38,7 @@ public class LoadForceContains {
              BufferedReader br = new BufferedReader(reader)
         ) {
             String line;
-
+            String partString;
             StringBuilder part = new StringBuilder();
 
             while ((line = br.readLine()) != null) {
@@ -48,19 +48,21 @@ public class LoadForceContains {
 
                 part.append(line).append("\n");
 
-//                if (line.equals("")) {
-//                    part.append(line).append("\n");
-//                }else {
-//                    part.append("    ").append(line).append("\n");
-//                }
-
-                if (line.contains("# --------------------- START ---------------------")){
+                if (line.contains("# --------------------- START ---------------------")) {
                     containsList.add(deleteEnter(part.toString()));
                     part = new StringBuilder();
                 }
 
+                if (line.contains("# ---------------------- END ----------------------")) {
+                    part = new StringBuilder();
+                    part.append(line).append("\n");
+                }
+
             }
-            containsList.add(part.toString().strip());
+            partString = part.toString();
+            if (partString.length() > 2) {
+                containsList.add(partString);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -68,8 +70,10 @@ public class LoadForceContains {
 
         String[] foreContains = new String[containsList.size()];
 
-        for(int i = 0; i < containsList.size(); i++){
-            foreContains[i] = containsList.get(i);
+        int index = 0;
+        for (String s : containsList) {
+            foreContains[index] = s;
+            index++;
         }
 
         return foreContains;

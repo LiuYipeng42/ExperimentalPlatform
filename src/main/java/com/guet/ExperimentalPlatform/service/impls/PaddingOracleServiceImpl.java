@@ -47,20 +47,15 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
 
         System.out.println(containerIP);
 
-        userIdContainer.put(containerName,
+        userIdContainer.put(
+                containerName,
                 new ContainerInfo()
                         .setContainerId(containerId)
                         .setContainerIP(containerIP)
         );
 
         // 复制文件
-        FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/manual_attack.py",
-                "PaddingOracleFiles/ExperimentDataFile/" + containerName + "_manual_attack.py",
-                "\"containerIP\"", "\"" + containerIP +"\"");
-
-        FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/auto_attack.py",
-                "PaddingOracleFiles/ExperimentDataFile/" + containerName + "_auto_attack.py",
-                "\"containerIP\"", "\"" + containerIP +"\"");
+        copyCodes(containerName);
 
         return true;
     }
@@ -80,6 +75,16 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
             new File("PaddingOracleFiles/ExperimentDataFile/" + containerName + "_auto_attack.py").delete();
         }
 
+    }
+
+    public void copyCodes(String userId){
+        FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/manual_attack.py",
+                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
+                "\"containerIP\"", "\"" + userIdContainer.get(userId).getContainerIP() +"\"");
+
+        FileOperation.copyAndReplace("PaddingOracleFiles/OriginalFiles/auto_attack.py",
+                "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
+                "\"containerIP\"", "\"" + userIdContainer.get(userId).getContainerIP() +"\"");
     }
 
 }

@@ -1,6 +1,9 @@
 package com.guet.ExperimentalPlatform.service.impls;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
+import com.guet.ExperimentalPlatform.entity.MD5TaskRecord;
+import com.guet.ExperimentalPlatform.mapper.MD5TaskRecordMapper;
 import com.guet.ExperimentalPlatform.service.MD5CollisionService;
 import org.springframework.stereotype.Service;
 
@@ -8,7 +11,8 @@ import java.io.IOException;
 
 
 @Service
-public class MD5CollisionServiceImpl implements MD5CollisionService {
+public class MD5CollisionServiceImpl extends ServiceImpl<MD5TaskRecordMapper, MD5TaskRecord>
+        implements MD5CollisionService {
 
     @Override
     public void createEnvironment(String userId) throws IOException {

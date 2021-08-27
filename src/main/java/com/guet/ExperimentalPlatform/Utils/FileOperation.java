@@ -33,7 +33,7 @@ public class FileOperation {
                 text.append(line).append("\n");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            return "";
         }
 
         return text.toString();

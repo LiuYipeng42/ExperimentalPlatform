@@ -1,0 +1,28 @@
+package com.guet.ExperimentalPlatform.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import java.util.Date;
+
+
+@Data
+@Accessors(chain = true)
+@TableName("code_test_record")
+public class CodeTestRecord {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private long studentId;
+
+    private String codeType;
+
+    private Date startTime;
+
+    private Date endTime;
+
+}

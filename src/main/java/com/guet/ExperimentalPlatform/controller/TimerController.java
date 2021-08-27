@@ -29,11 +29,7 @@ public class TimerController {
         pageType.put("rsa", "4");
         pageType.put("hash", "5");
         pageType.put("aes", "6");
-        pageType.put("aesProcedure", "7");
-        pageType.put("aesAvalanche", "8");
-        pageType.put("rsaCoding", "9");
-        pageType.put("hashCoding", "10");
-        pageType.put("aesCoding", "11");
+        pageType.put("codeTest", "7");
     }
 
     @Autowired
@@ -54,10 +50,18 @@ public class TimerController {
         String presentPageRecordId;
         String nextPageRecordId;
 
+        userId = (long) session.getAttribute("userId");
+
+        studyRecordService.update(
+                new UpdateWrapper<StudyRecord>()
+                        .set("end_time", new Date())
+                        .eq("student_id", userId)
+                        .isNull("end_time")
+        );
+
         if (!nextPage.equals(presentPage)) {
             // 页面发生切换
 
-            userId = (long) session.getAttribute("userId");
 
             loginId = (long) session.getAttribute("loginId");
 
@@ -66,7 +70,7 @@ public class TimerController {
             nextPageRecordId = (String) session.getAttribute(nextPage + "RecordId");
 
             if (presentPage != null) {
-                // 若访问过一个页面，则加上上一个页面的结束时间
+                // 若访问过一个页面，则加上上一个页面的结束时间（切换页面更新）
                 studyRecordService.update(
                         new UpdateWrapper<StudyRecord>()
                                 .set("end_time", new Date())
@@ -80,6 +84,7 @@ public class TimerController {
             session.setAttribute("page", nextPage);
 
             if (nextPageRecordId == null) {
+
                 // 以前从没有访问过这个页面，插入访问数据
                 StudyRecord studyRecord = new StudyRecord()
                         .setStudentId(userId)

@@ -3,16 +3,19 @@ package com.guet.ExperimentalPlatform.service.impls;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.guet.ExperimentalPlatform.entity.FTAllInfo;
 import com.guet.ExperimentalPlatform.entity.FTConnectRecord;
 import com.guet.ExperimentalPlatform.entity.FTEncryptionInformation;
 import com.guet.ExperimentalPlatform.mapper.FTConnectRecordMapper;
 import com.guet.ExperimentalPlatform.mapper.FTEncryptionInfoMapper;
 import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
 import com.guet.ExperimentalPlatform.service.FileTransmissionService;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -96,4 +99,9 @@ public class FileTransmissionServiceImpl implements FileTransmissionService {
                 }
         }
     }
+
+    public List<FTAllInfo> getAllInfo(long userId){
+        return ftEncryptionInfoMapper.getAllInfo(userId);
+    }
+
 }

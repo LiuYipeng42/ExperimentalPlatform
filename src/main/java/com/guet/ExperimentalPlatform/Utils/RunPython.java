@@ -1,31 +1,11 @@
 package com.guet.ExperimentalPlatform.Utils;
 
-import com.guet.ExperimentalPlatform.entity.RunCodesRecord;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.stream.Collectors;
 
 public class RunPython {
-
-    private static final HashMap<String, String> originalFiles = new HashMap<>();
-
-    static {
-        originalFiles.put("1", loadOriginalFile("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
-        originalFiles.put("2", loadOriginalFile("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
-        originalFiles.put("4", loadOriginalFile("CodeTest/FilesForCopy/aes.py"));
-        originalFiles.put("3", loadOriginalFile("CodeTest/FilesForCopy/rsa.py"));
-    }
-
-    private static String loadOriginalFile(String filePath) {
-        return Arrays.stream(FileOperation.readFile(filePath)
-                        .split("\n")).filter(x -> !x.contains("#"))
-                .collect(Collectors.joining()).replace(" ", "");
-    }
 
     public static boolean limitImport(String[] libs, String changedPythonFile) {
 
@@ -78,7 +58,7 @@ public class RunPython {
 
     private static String limitImportAndFormat(String changedPythonFile, String[] libs) {
 
-        if (!limitImport(libs, changedPythonFile)){
+        if (!limitImport(libs, changedPythonFile)) {
             return "不可import其他库";
         }
 
@@ -92,25 +72,32 @@ public class RunPython {
         return reduceNotes.toString().replace(" ", "").replace("\n", "");
     }
 
-    private static String checkCodes(String changedPythonFile,
-                                     String codeType,
+    private static String checkCodes(String changedFile,
+                                     String originalFile,
                                      double codeSimilarity,
+                                     String[] forceContains,
                                      String[] libs) {
 
-        changedPythonFile = limitImportAndFormat(changedPythonFile, libs);
+        if (forceContains != null) {
+            for (String s : forceContains) {
+                if (!changedFile.contains(s)) {
+                    return "不可修改原有代码";
+                }
+            }
+        }
 
-        if (changedPythonFile.equals("不可import其他库")) {
+        changedFile = limitImportAndFormat(changedFile, libs);
+
+        if (changedFile.equals("不可import其他库")) {
             return "不可import其他库";
         }
 
-        if (changedPythonFile.length() > 3000) {
+        if (changedFile.length() > 3000) {
             return "代码过多";
         }
 
-        System.out.println(originalFiles.get(codeType));
-
         if (codeSimilarity > 0 &&
-                CodeSimilarity.calculate(originalFiles.get(codeType), changedPythonFile) < codeSimilarity) {
+                CodeSimilarity.calculate(originalFile, changedFile) < codeSimilarity) {
             return "代码修改过多";
         }
 
@@ -123,7 +110,6 @@ public class RunPython {
 
         if (forceContains != null) {
             for (String s : forceContains) {
-                System.out.println(pythonFile.contains(s));
                 if (!pythonFile.contains(s)) {
                     return "不可修改原有代码";
                 }
@@ -141,7 +127,7 @@ public class RunPython {
         return "success";
     }
 
-    public static void addTracebackCode(String codes, String filePath) {
+    public static String addTracebackCode(String codes) {
 
         String[] codeLines = codes.split("\n");
 
@@ -176,11 +162,7 @@ public class RunPython {
                 "        exception += line\n" +
                 "    print(exception)");
 
-        FileOperation.writeFile(
-                filePath,
-                processedCode.toString()
-        );
-
+        return processedCode.toString();
     }
 
     private static String getResult(String filePath) throws IOException {
@@ -195,15 +177,14 @@ public class RunPython {
         return result;
     }
 
-    public static RunCodesRecord runPostCodes(HttpServletRequest request, String filePath, String codeType,
-                                              double codeSimilarity, String[] libs) throws IOException {
+    public static String run(String codes, String filePath, String originalFile,
+                                     double codeSimilarity, String[] forceContains, String[] libs) throws IOException {
         String checkStatus;
-
-        String codes = FileOperation.savePostText(request, filePath);
-
         String result;
 
-        checkStatus = checkCodes(codes, codeType, codeSimilarity, libs);
+        checkStatus = checkCodes(codes, originalFile, codeSimilarity, forceContains, libs);
+        codes = addTracebackCode(codes);
+        FileOperation.writeFile(filePath, codes);
 
         if (checkStatus.equals("success")) {
             result = getResult(filePath);
@@ -211,52 +192,26 @@ public class RunPython {
             result = checkStatus;
         }
 
-        return new RunCodesRecord()
-                .setCodeType(codeType)
-                .setCode(codes)
-                .setResult(result)
-                .setRunningDatetime(new Date());
+        return result;
 
     }
 
-    public static RunCodesRecord runPostCodes(HttpServletRequest request, String filePath, String codeType,
-                                              String[] libs) throws IOException {
+    public static String run(String codes, String filePath,
+                             String[] forceContains, String[] libs) throws IOException {
         String checkStatus;
-
-        String codes = FileOperation.savePostText(request, filePath);
-
         String result;
-
-        checkStatus = checkCodes(codes, null, libs);
-
-        if (checkStatus.equals("success")) {
-            result = getResult(filePath);
-        } else {
-            result = checkStatus;
-        }
-
-        return new RunCodesRecord()
-                .setCodeType(codeType)
-                .setCode(codes)
-                .setResult(result)
-                .setRunningDatetime(new Date());
-    }
-
-    public static String runAndGetTraceback(String codes, String dstFilePath, String[] libs, String[] forceContains)
-            throws IOException {
-
-        String checkStatus;
 
         checkStatus = checkCodes(codes, forceContains, libs);
-
-        addTracebackCode(codes, dstFilePath);
+        codes = addTracebackCode(codes);
+        FileOperation.writeFile(filePath, codes);
 
         if (checkStatus.equals("success")) {
-            return getResult(dstFilePath);
+            result = getResult(filePath);
         } else {
-            return checkStatus;
+            result = checkStatus;
         }
 
+        return result;
     }
 
 }

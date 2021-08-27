@@ -9,4 +9,6 @@ public interface PaddingOracleService {
 
     void closeEnvironment(String userId);
 
+    void copyCodes(String userId);
+
 }

@@ -5,8 +5,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
 import com.guet.ExperimentalPlatform.entity.AlgorithmParams;
+import com.guet.ExperimentalPlatform.entity.AlgorithmRecord;
+import com.guet.ExperimentalPlatform.service.AlgorithmRecordService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 
 @CrossOrigin
@@ -14,8 +18,24 @@ import java.io.IOException;
 @RequestMapping("/server")
 public class AlgorithmController {
 
-    @PostMapping("/aes")
-    public JSONObject Aes(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    private final AlgorithmRecordService algorithmRecordService;
+
+    @Autowired
+    public AlgorithmController(AlgorithmRecordService algorithmRecordService){
+        this.algorithmRecordService = algorithmRecordService;
+    }
+
+    @PostMapping("/aes") // aes 加密过程
+    public JSONObject Aes(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("aesProcedure").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return JSON.parseObject(
                 RunCMD.execute("python3 Algorithms/AES.py "
@@ -23,8 +43,17 @@ public class AlgorithmController {
         );
     }
 
-    @PostMapping("/aesice/plaintext")
-    public JSONObject getPlaintext(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/aesice/plaintext") // aes 更改明文比较
+    public JSONObject getPlaintext(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("aesAvalanchePlaintext").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return JSON.parseObject(
                 RunCMD.execute(
@@ -34,8 +63,17 @@ public class AlgorithmController {
         );
     }
 
-    @PostMapping("/aesice/secret")
-    public JSONObject getSecretKey(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/aesice/secret") // aes 更改密文比较
+    public JSONObject getSecretKey(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("aesAvalancheSecretKey").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return JSON.parseObject(
                 RunCMD.execute("python3 Algorithms/AES_ice.py encryption_secret_key "
@@ -43,15 +81,33 @@ public class AlgorithmController {
         );
     }
 
-    @PostMapping("/aes/decryption")
-    public String AESDecryption(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/aes/decryption") // aes 解密
+    public String AESDecryption(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("aesDecryption").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py decryption "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
     }
 
-    @PostMapping("/aes/encryption")
-    public String AESEncryption(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/aes/encryption") // aes 加密
+    public String AESEncryption(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("aesEncryption").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py encryption "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
@@ -71,22 +127,49 @@ public class AlgorithmController {
                 + algorithmPara.getP() + " " + algorithmPara.getQ() + " " + algorithmPara.getE());
     }
 
-    @PostMapping("/rsaCalculateC")
-    public String rsaCalculateC(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/rsaCalculateC")  // rsa 加密
+    public String rsaCalculateC(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("rsaEncryption").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return RunCMD.execute("python3 Algorithms/rsa_calculate.py calculate_c "
                 + algorithmPara.getM() + " " + algorithmPara.getE() + " " + algorithmPara.getN());
     }
 
-    @PostMapping("/rsaCalculateM")
-    public String rsaCalculateM(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/rsaCalculateM")  // rsa 解密
+    public String rsaCalculateM(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("rsaDecryption").setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return RunCMD.execute("python3 Algorithms/rsa_calculate.py calculate_m "
                 + algorithmPara.getC() + " " + algorithmPara.getD() + " " + algorithmPara.getN());
     }
 
-    @PostMapping("/hash")
-    public String hash(@RequestBody AlgorithmParams algorithmPara) throws IOException {
+    @PostMapping("/hash")  // 5 种 hash
+    public String hash(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        try {
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm(algorithmPara.getParam2()).setStudentId(userId)
+            );
+        } catch (Exception ignored){
+        }
 
         return RunCMD.execute("python3 Algorithms/Hash.py "
                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2());

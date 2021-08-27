@@ -1,16 +1,21 @@
 package com.guet.ExperimentalPlatform.controller;
 
+import com.github.dockerjava.api.exception.ConflictException;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
+import com.guet.ExperimentalPlatform.Utils.LoadForceContains;
 import com.guet.ExperimentalPlatform.Utils.RunPython;
-import com.guet.ExperimentalPlatform.entity.RunCodesRecord;
+import com.guet.ExperimentalPlatform.entity.PORunCodesRecord;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
-import com.guet.ExperimentalPlatform.service.RunCodesRecordService;
+import com.guet.ExperimentalPlatform.service.PORunCodesRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 
 @CrossOrigin
@@ -19,11 +24,23 @@ import java.util.Date;
 public class PaddingOracleController {
 
     private final PaddingOracleService paddingOracleService;
-    private final RunCodesRecordService runCodesRecordService;
+    private final PORunCodesRecordService runCodesRecordService;
+
+    private static final String originalFile =
+            Arrays.stream(FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manual_attack.py").split("\n"))
+                    .filter(x -> !x.contains("#"))
+                    .collect(Collectors.joining()).replace(" ", "");
+
+    private static final HashMap<String, String[]> forceContains = new HashMap<>();
+
+    static {
+        forceContains.put("manual_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
+        forceContains.put("auto_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
+    }
 
     @Autowired
     public PaddingOracleController(PaddingOracleService paddingOracleService,
-                                   RunCodesRecordService runCodesRecordService) {
+                                   PORunCodesRecordService runCodesRecordService) {
         this.paddingOracleService = paddingOracleService;
         this.runCodesRecordService = runCodesRecordService;
     }
@@ -38,11 +55,11 @@ public class PaddingOracleController {
                     String.valueOf(userId),
                     "guet/security-server:padding-oracle"
             );
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (ConflictException e) {
+            return true;
+        } catch (IOException e) {
             return false;
         }
-
         return true;
 
     }
@@ -80,20 +97,38 @@ public class PaddingOracleController {
 
     }
 
+    @GetMapping("/reset/{fileName}")
+    public String resetCodes(HttpServletRequest request,
+                                @PathVariable("fileName") String fileName) {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        paddingOracleService.copyCodes(String.valueOf(userId));
+
+        return FileOperation.readFile(
+                "PaddingOracleFiles/ExperimentDataFile/" +
+                        userId +
+                        "_" +
+                        fileName +
+                        ".py"
+        );
+    }
+
     @PostMapping("/auto_attack")
     public String runAutoAttack(HttpServletRequest request) throws IOException {
 
         long userId = (long) request.getSession().getAttribute("userId");
-        RunCodesRecord runCodesRecord;
         String result;
         String status;
 
-        runCodesRecord = RunPython.runPostCodes(
-                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py",
-                "2", new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
+        String codes = FileOperation.savePostText(
+                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py"
         );
 
-        result = runCodesRecord.getResult();
+        result = RunPython.run(
+                codes, "PaddingOracleFiles/ExperimentDataFile/tempCodes/" + userId + "_auto_attack.py",
+                forceContains.get("auto_attack"), new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
+        );
 
         if (result.contains("Congraduations! you've got the plain!")) {
             result += "\n已获取正确密文!";
@@ -103,7 +138,13 @@ public class PaddingOracleController {
             status = "fail";
         }
 
-        runCodesRecordService.save(runCodesRecord.setStudentId(userId).setStatus(status));
+        runCodesRecordService.save(
+                new PORunCodesRecord()
+                        .setStudentId(userId)
+                        .setCodeType("auto_attack")
+                        .setStatus(status)
+                        .setRunningDatetime(new Date())
+        );
 
         return result;
 
@@ -114,15 +155,24 @@ public class PaddingOracleController {
 
         long userId = (long) request.getSession().getAttribute("userId");
 
-        RunCodesRecord result = RunPython.runPostCodes(
-                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py",
-                "1", 0.84,
+        String codes = FileOperation.savePostText(
+                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py"
+        );
+
+        String result = RunPython.run(
+                codes, "PaddingOracleFiles/ExperimentDataFile/tempCodes/" + userId + "_manual_attack.py",
+                originalFile, 0.84, forceContains.get("manual_attack"),
                 new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
 
-        runCodesRecordService.save(result.setStudentId(userId));
+        runCodesRecordService.save(
+                new PORunCodesRecord()
+                        .setStudentId(userId)
+                        .setCodeType("manual_attack")
+                        .setRunningDatetime(new Date())
+        );
 
-        return result.getResult();
+        return result;
 
     }
 

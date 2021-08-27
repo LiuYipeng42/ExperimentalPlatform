@@ -12,7 +12,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import java.util.Date;
 import java.util.Map;
+
+
 @Slf4j
 @Component
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
@@ -30,17 +33,24 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
                                    WebSocketHandler webSocketHandler,
                                    Map<String, Object> map) {
 
-        String userAccount = ((ServletServerHttpRequest) serverHttpRequest)
-                .getServletRequest()
-                .getParameter("userAccount");
+        try {
+            String userAccount = ((ServletServerHttpRequest) serverHttpRequest)
+                    .getServletRequest()
+                    .getParameter("userAccount");
 
-        System.out.println(studentService);
-        long userId = studentService.getOne(
-                new QueryWrapper<Student>().eq("account", userAccount)
-        ).getId();
+            System.out.println(studentService);
+            long userId = studentService.getOne(
+                    new QueryWrapper<Student>().eq("account", userAccount)
+            ).getId();
 
-        map.put("userId", userId);
-        map.put("userAccount", userAccount);
+            map.put("userId", userId);
+            map.put("userAccount", userAccount);
+
+        } catch (NullPointerException e){
+            System.out.println("WebSocketHandshakeInterceptor:NullPointerException " + new Date());
+            return false;
+        }
+
         return true;
     }
 

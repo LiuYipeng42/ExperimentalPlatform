@@ -31,8 +31,9 @@ class PaddingOracle:
 
 
 if __name__ == "__main__":
-    # oracle = PaddingOracle('10.9.0.80', 5000)
+    # --------------------- START ---------------------
     oracle = PaddingOracle("containerIP", 5000)
+    # ---------------------- END ----------------------
 
     # Get the IV + Ciphertext from the oracle
     iv_and_ctext = bytearray(oracle.ctext)
@@ -42,15 +43,16 @@ if __name__ == "__main__":
     print("C1:  " + C1.hex())
     print("C2:  " + C2.hex())
 
-    ###############################################################
     # Here, we initialize D2 with C1, so when they are XOR-ed,
     # The result is 0. This is not required for the attack.
     # Its sole purpose is to make the printout look neat.
     # In the experiment, we will iteratively replace these values.
 
-    # 只可以改变 D2[i]的值，如果代码改动太多将不会运行
     D2 = bytearray(16)
 
+    # 只可以改变 D2[i]的值，如果代码改动太多将不会运行
+    # 只可在虚线内写代码，否则将不会运行
+    # --------------------- START ---------------------
     D2[0]  = C1[0]
     D2[1]  = C1[1]
     D2[2]  = C1[2]
@@ -67,13 +69,16 @@ if __name__ == "__main__":
     D2[13] = C1[13]
     D2[14] = C1[14]
     D2[15] = C1[15]
-    ###############################################################
+    # ---------------------- END ----------------------
+
     # In the experiment, we need to iteratively modify CC1
     # We will send this CC1 to the oracle, and see its response.
 
-    # 只可以改变 CC1[i]的值，如果代码改动太多将不会运行
     CC1 = bytearray(16)
 
+    # 只可以改变 CC1[i]的值，如果代码改动太多将不会运行
+    # 只可在虚线内写代码，否则将不会运行
+    # --------------------- START ---------------------
     CC1[0]  = 0x00
     CC1[1]  = 0x00
     CC1[2]  = 0x00
@@ -90,9 +95,9 @@ if __name__ == "__main__":
     CC1[13] = 0x00
     CC1[14] = 0x00
     CC1[15] = 0x00
+    # ---------------------- END ----------------------
 
-    ###############################################################
-    # In each iteration, we focus on one byte of CC1.  
+    # In each iteration, we focus on one byte of CC1.
     # We will try all 256 possible values, and send the constructed
     # ciphertext CC1 + C2 (plus the IV) to the oracle, and see 
     # which value makes the padding valid. 
@@ -101,7 +106,11 @@ if __name__ == "__main__":
     # Repeating the method for 16 times, we get all the 16 bytes of D2.
 
     # 只可以改变 K的值，如果代码改动太多将不会运行
+    # 只可在虚线内写代码，否则将不会运行
+    # --------------------- START ---------------------
     K = 1
+    # ---------------------- END ----------------------
+
     for i in range(256):
           CC1[16 - K] = i
           status = oracle.decrypt(IV + CC1 + C2)
