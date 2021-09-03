@@ -6,7 +6,6 @@ import com.guet.ExperimentalPlatform.Utils.LoadForceContains;
 import com.guet.ExperimentalPlatform.Utils.RunPython;
 import com.guet.ExperimentalPlatform.entity.PORunCodesRecord;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
-import com.guet.ExperimentalPlatform.service.PORunCodesRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 public class PaddingOracleController {
 
     private final PaddingOracleService paddingOracleService;
-    private final PORunCodesRecordService runCodesRecordService;
 
     private static final String originalFile =
             Arrays.stream(FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manual_attack.py").split("\n"))
@@ -39,10 +37,8 @@ public class PaddingOracleController {
     }
 
     @Autowired
-    public PaddingOracleController(PaddingOracleService paddingOracleService,
-                                   PORunCodesRecordService runCodesRecordService) {
+    public PaddingOracleController(PaddingOracleService paddingOracleService) {
         this.paddingOracleService = paddingOracleService;
-        this.runCodesRecordService = runCodesRecordService;
     }
 
     @GetMapping("/createEnvironment")
@@ -55,8 +51,6 @@ public class PaddingOracleController {
                     String.valueOf(userId),
                     "guet/security-server:padding-oracle"
             );
-        } catch (ConflictException e) {
-            return true;
         } catch (IOException e) {
             return false;
         }
@@ -138,7 +132,7 @@ public class PaddingOracleController {
             status = "fail";
         }
 
-        runCodesRecordService.save(
+        paddingOracleService.save(
                 new PORunCodesRecord()
                         .setStudentId(userId)
                         .setCodeType("auto_attack")
@@ -165,7 +159,7 @@ public class PaddingOracleController {
                 new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
 
-        runCodesRecordService.save(
+        paddingOracleService.save(
                 new PORunCodesRecord()
                         .setStudentId(userId)
                         .setCodeType("manual_attack")

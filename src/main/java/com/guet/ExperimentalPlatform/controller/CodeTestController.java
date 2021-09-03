@@ -33,6 +33,7 @@ public class CodeTestController {
         codeTestRecordService.remove(
                 new QueryWrapper<CodeTestRecord>()
                         .eq("student_id", userId)
+                        .eq("code_type", codesType)
                         .isNull("end_time")
         );
 
@@ -66,7 +67,7 @@ public class CodeTestController {
         long userId = (long) request.getSession().getAttribute("userId");
 
         Integer[] finishedTests = codeTestRecordService.
-                list(new QueryWrapper<CodeTestRecord>().eq("student_id", userId))
+                list(new QueryWrapper<CodeTestRecord>().eq("student_id", userId).isNotNull("end_time"))
                 .stream().map(x->Integer.valueOf(x.getCodeType())).toArray(Integer[]::new);
 
         int[] bitMap = new int[]{0, 0, 0, 0, 0, 0};

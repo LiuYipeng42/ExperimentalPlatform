@@ -29,7 +29,9 @@ public class TimerController {
         pageType.put("rsa", "4");
         pageType.put("hash", "5");
         pageType.put("aes", "6");
-        pageType.put("codeTest", "7");
+        pageType.put("aesProcedure", "7");
+        pageType.put("aesAvalanche", "8");
+        pageType.put("codeTest", "9");
     }
 
     @Autowired
@@ -41,6 +43,8 @@ public class TimerController {
     public void heartbeat(HttpServletRequest request,
                           @RequestParam("page") String nextPage) {
 
+        System.out.println(nextPage);
+
         HttpSession session = request.getSession();
 
         String presentPage = (String) session.getAttribute("page");
@@ -51,13 +55,6 @@ public class TimerController {
         String nextPageRecordId;
 
         userId = (long) session.getAttribute("userId");
-
-        studyRecordService.update(
-                new UpdateWrapper<StudyRecord>()
-                        .set("end_time", new Date())
-                        .eq("student_id", userId)
-                        .isNull("end_time")
-        );
 
         if (!nextPage.equals(presentPage)) {
             // 页面发生切换
@@ -98,6 +95,16 @@ public class TimerController {
 
             }
 
+        }else {
+            loginId = (long) session.getAttribute("loginId");
+
+            studyRecordService.update(
+                    new UpdateWrapper<StudyRecord>()
+                            .set("end_time", new Date())
+                            .eq("student_id", userId)
+                            .eq("login_id", loginId)
+                            .eq("experiment_type", pageType.get(presentPage))
+            );
         }
 
     }

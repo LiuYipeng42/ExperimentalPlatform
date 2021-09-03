@@ -7,8 +7,6 @@ import com.guet.ExperimentalPlatform.entity.Student;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 
 
-public interface StudentService extends IService<Student> {
+public interface UserService extends IService<Student> {
     String login(LoginForm loginForm);
-
-//    String listStudentsPage(Page<Student> page);
 }

@@ -1,8 +1,12 @@
 package com.guet.ExperimentalPlatform.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.Utils.AES;
+import com.guet.ExperimentalPlatform.entity.Student;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
-import com.guet.ExperimentalPlatform.service.StudentService;
+import com.guet.ExperimentalPlatform.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +17,11 @@ import javax.servlet.http.HttpSession;
 @CrossOrigin
 @RestController
 public class LoginController {
-    private final StudentService studentService;
+    private final UserService userService;
 
     @Autowired
-    public LoginController(StudentService studentService) {
-        this.studentService = studentService;
+    public LoginController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -27,23 +31,38 @@ public class LoginController {
 
         loginForm.password = AES.Decrypt(loginForm.password, secretKey);
 
-        String[] loginResult = studentService.login(loginForm).split(" ");
-        String result;
+        String loginResult = userService.login(loginForm);
 
-        if (loginResult[0].equals("没有此用户")){
+        if (loginResult.equals("没有此用户")){
             return "没有此用户";
-        }else {
-            if (loginResult[0].equals("success")) {
-                HttpSession session = request.getSession();
-                session.setAttribute("userId", Long.valueOf(loginResult[1]));
-                session.setAttribute("loginId", Long.valueOf(loginResult[2]));
-            }
+        }else if (loginResult.equals("密码错误")){
+            return "密码错误";
+        } else  {
 
-            result = loginResult[0] + System.currentTimeMillis();
+            JSONObject result = JSON.parseObject(loginResult);
 
-            return AES.Encrypt(result, secretKey);
+            HttpSession session = request.getSession();
+            session.setAttribute("userId", Long.valueOf(result.getString("userId")));
+            session.setAttribute("loginId", Long.valueOf(result.getString("loginRecordId")));
+
+            result.remove("loginRecordId");
+            result.remove("userId");
+
+            System.out.println(result);
+
+            return AES.Encrypt(result.toString(), secretKey);
         }
 
+    }
+
+    @GetMapping("/changePasswd")
+    public void changePassword(HttpServletRequest request, @RequestParam("passwd") String newPassword){
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        userService.update(
+                new UpdateWrapper<Student>().set("password", newPassword).eq("id", userId)
+        );
     }
 
 }

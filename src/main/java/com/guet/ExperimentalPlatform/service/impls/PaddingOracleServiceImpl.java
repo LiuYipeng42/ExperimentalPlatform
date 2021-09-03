@@ -1,22 +1,28 @@
 package com.guet.ExperimentalPlatform.service.impls;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 
+import com.github.dockerjava.api.exception.ConflictException;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
+import com.guet.ExperimentalPlatform.entity.PORunCodesRecord;
+import com.guet.ExperimentalPlatform.mapper.PORunCodesRecordMapper;
 import com.guet.ExperimentalPlatform.pojo.ContainerInfo;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 @Service
-public class PaddingOracleServiceImpl implements PaddingOracleService {
+public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper, PORunCodesRecord>
+        implements PaddingOracleService {
 
     private final DockerClient client;
     private static final ConcurrentHashMap<String, ContainerInfo> userIdContainer = new ConcurrentHashMap<>();
@@ -28,34 +34,40 @@ public class PaddingOracleServiceImpl implements PaddingOracleService {
     }
 
     public boolean createEnvironment(String containerName, String imageName) {
-        CreateContainerResponse container;
-        // 创建容器
 
-        container = client.createContainerCmd(imageName)
-                .withName(containerName).exec();
+        try {
+            CreateContainerResponse container;
+            // 创建容器
 
-        String containerId = container.getId();
+            container = client.createContainerCmd(imageName)
+                    .withName(containerName).exec();
 
-        // 启动容器
-        client.startContainerCmd(containerId).exec();
+            String containerId = container.getId();
 
-        String containerIP = client.inspectContainerCmd(container.getId()).exec()
-                .getNetworkSettings()
-                .getNetworks()
-                .get("bridge")
-                .getIpAddress();
+            // 启动容器
+            client.startContainerCmd(containerId).exec();
 
-        System.out.println(containerIP);
+            String containerIP = client.inspectContainerCmd(container.getId()).exec()
+                    .getNetworkSettings()
+                    .getNetworks()
+                    .get("bridge")
+                    .getIpAddress();
 
-        userIdContainer.put(
-                containerName,
-                new ContainerInfo()
-                        .setContainerId(containerId)
-                        .setContainerIP(containerIP)
-        );
+            System.out.println(containerIP);
 
-        // 复制文件
-        copyCodes(containerName);
+            userIdContainer.put(
+                    containerName,
+                    new ContainerInfo()
+                            .setContainerId(containerId)
+                            .setContainerIP(containerIP)
+            );
+
+            // 复制文件
+            copyCodes(containerName);
+
+        } catch (ConflictException e) {
+            return true;
+        }
 
         return true;
     }

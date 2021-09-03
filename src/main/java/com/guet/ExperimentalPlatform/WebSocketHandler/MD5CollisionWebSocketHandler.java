@@ -164,6 +164,11 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
             } else if (cdCommands.contains(command.split(" ")[0])) {
                 result = RunCMD.execute(command, filePath);
+
+                if (command.startsWith("echo")){
+                    result = "'" + command + "' 运行成功";
+                }
+
             } else if (command.startsWith("md5collgen ")) {
                 RunCMD.execute("./" + command, filePath, session);
             } else if (command.startsWith("saveFile ")) {

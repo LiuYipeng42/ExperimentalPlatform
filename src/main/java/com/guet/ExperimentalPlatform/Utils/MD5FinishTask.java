@@ -29,7 +29,6 @@ public class MD5FinishTask {
                         return "缺少 " + file + " 文件";
                     }
                 }
-
                 if (!userCommands.contains("md5collgen-pprefix-oout1.binout2.bin")
                         && !userCommands.contains("md5collgen-pprefix-oout2.binout1.bin")) {
                     return "没有运行 md5collgen";
