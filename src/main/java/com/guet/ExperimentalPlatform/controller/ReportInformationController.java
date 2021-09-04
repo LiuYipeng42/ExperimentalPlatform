@@ -70,6 +70,8 @@ public class ReportInformationController {
 
         long userId = student.getId();
 
+        System.out.println(userId);
+
         double algorithmScore;
         double algorithmAttackScore;
         double digitalEnvelopeScore;
@@ -158,6 +160,7 @@ public class ReportInformationController {
         // 四个任务一个 20 分，共 80 分
         md5CollisionScore = (md5TaskRecords.size() / 4.0) * 80;
 
+
         // 20 分钟 20分
         if (studyTime.get("3") < 20) {
             md5CollisionScore += studyTime.get("3");
@@ -190,7 +193,7 @@ public class ReportInformationController {
 
         // 10 分钟 20 分
         if (studyTime.get("2") < 10) {
-            paddingOracleScore += studyTime.get("3") * 2;
+            paddingOracleScore += studyTime.get("2") * 0.5;
         } else {
             paddingOracleScore += 20;
         }
@@ -279,7 +282,9 @@ public class ReportInformationController {
             pageNum = count / 10;
         }
 
-        List<Student> studentInfos = userService.page(new Page<>(page * 10L, 10)).getRecords();
+        List<Student> studentInfos = userService.page(new Page<>(page + 1, 10)).getRecords();
+
+//        studentInfos.forEach((x)-> System.out.print(x.getId() + " "));
 
         BigDecimal temp;
 
@@ -295,7 +300,6 @@ public class ReportInformationController {
             ((BigDecimal) score.get("算法基础")).multiply(BigDecimal.valueOf(0.2))
                     .add(((BigDecimal) score.get("算法攻击")).multiply(BigDecimal.valueOf(0.3)))
                     .add(((BigDecimal) score.get("数字信封")).multiply(BigDecimal.valueOf(0.5)));
-            System.out.println(temp);
 
             student = new JSONObject();
             student.put("account", studentInfo.getAccount());
