@@ -4,9 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
 import com.guet.ExperimentalPlatform.service.FileTransmissionService;
-import com.guet.ExperimentalPlatform.service.StudyRecordService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -25,10 +25,12 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
     private static final ConcurrentHashMap<String, TransmissionInfo> transmissionId = new ConcurrentHashMap<>();
 
     private final FileTransmissionService fileTransmissionService;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    private TransmissionWebSocketHandler(FileTransmissionService fileTransmissionService) {
+    private TransmissionWebSocketHandler(FileTransmissionService fileTransmissionService, RedisTemplate<String, Object> redisTemplate) {
         this.fileTransmissionService = fileTransmissionService;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -67,6 +69,8 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
                         onlineUser.get(toUserAccount),
                         transmissionId
                 );
+
+                redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -107,7 +111,7 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
 
-        long userId = (long) session.getAttributes().get("userId");
+//        long userId = (long) session.getAttributes().get("userId");
         String userAccount = (String) session.getAttributes().get("userAccount");
 
         onlineUser.remove(userAccount);

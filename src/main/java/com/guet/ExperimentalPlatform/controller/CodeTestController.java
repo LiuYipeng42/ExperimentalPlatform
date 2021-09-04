@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.entity.CodeTestRecord;
 import com.guet.ExperimentalPlatform.service.CodeTestRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,12 +18,14 @@ import java.util.Date;
 @RequestMapping("CodeTest")
 public class CodeTestController {
 
-
     private final CodeTestRecordService codeTestRecordService;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    public CodeTestController(CodeTestRecordService codeTestRecordService) {
+    public CodeTestController(CodeTestRecordService codeTestRecordService, RedisTemplate<String, Object> redisTemplate) {
         this.codeTestRecordService = codeTestRecordService;
+        this.redisTemplate = redisTemplate;
     }
 
     @GetMapping("/start")
@@ -59,6 +62,7 @@ public class CodeTestController {
                         .eq("code_type", codesType)
                         .isNull("end_time")
         );
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
     }
 

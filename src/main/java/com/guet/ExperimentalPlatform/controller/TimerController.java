@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.entity.StudyRecord;
 import com.guet.ExperimentalPlatform.service.StudyRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,8 @@ public class TimerController {
 
     private static final HashMap<String, String> pageType = new HashMap<>();
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     static {
         pageType.put("fileTransmission", "1");
         pageType.put("paddingOracle", "2");
@@ -35,8 +38,9 @@ public class TimerController {
     }
 
     @Autowired
-    public TimerController(StudyRecordService studyRecordService) {
+    public TimerController(StudyRecordService studyRecordService, RedisTemplate<String, Object> redisTemplate) {
         this.studyRecordService = studyRecordService;
+        this.redisTemplate = redisTemplate;
     }
 
     @GetMapping("/heartbeat")
@@ -58,7 +62,6 @@ public class TimerController {
 
         if (!nextPage.equals(presentPage)) {
             // 页面发生切换
-
 
             loginId = (long) session.getAttribute("loginId");
 
@@ -106,6 +109,8 @@ public class TimerController {
                             .eq("experiment_type", pageType.get(presentPage))
             );
         }
+
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
     }
 }

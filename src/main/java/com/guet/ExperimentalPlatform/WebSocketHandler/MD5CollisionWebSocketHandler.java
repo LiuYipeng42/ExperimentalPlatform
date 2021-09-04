@@ -9,6 +9,7 @@ import com.guet.ExperimentalPlatform.entity.MD5TaskRecord;
 import com.guet.ExperimentalPlatform.pojo.MD5CommandResult;
 import com.guet.ExperimentalPlatform.service.MD5CollisionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     private final MD5CollisionService md5CollisionService;
     private static final HashMap<Long, String> userTask = new HashMap<>();
@@ -51,7 +54,8 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Autowired
-    public MD5CollisionWebSocketHandler(MD5CollisionService md5CollisionService) {
+    public MD5CollisionWebSocketHandler(RedisTemplate<String, Object> redisTemplate, MD5CollisionService md5CollisionService) {
+        this.redisTemplate = redisTemplate;
         this.md5CollisionService = md5CollisionService;
     }
 
@@ -77,6 +81,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                                 .eq("task_name", userTask.get(userId))
                                 .isNull("end_time")
                 );
+                redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
             }
 
             session.sendMessage(new TextMessage(checkResult));

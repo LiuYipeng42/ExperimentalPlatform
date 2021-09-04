@@ -1,12 +1,12 @@
 package com.guet.ExperimentalPlatform.controller;
 
-import com.github.dockerjava.api.exception.ConflictException;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
 import com.guet.ExperimentalPlatform.Utils.LoadForceContains;
 import com.guet.ExperimentalPlatform.Utils.RunPython;
 import com.guet.ExperimentalPlatform.entity.PORunCodesRecord;
 import com.guet.ExperimentalPlatform.service.PaddingOracleService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +24,8 @@ public class PaddingOracleController {
 
     private final PaddingOracleService paddingOracleService;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     private static final String originalFile =
             Arrays.stream(FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manual_attack.py").split("\n"))
                     .filter(x -> !x.contains("#"))
@@ -37,8 +39,9 @@ public class PaddingOracleController {
     }
 
     @Autowired
-    public PaddingOracleController(PaddingOracleService paddingOracleService) {
+    public PaddingOracleController(PaddingOracleService paddingOracleService, RedisTemplate<String, Object> redisTemplate) {
         this.paddingOracleService = paddingOracleService;
+        this.redisTemplate = redisTemplate;
     }
 
     @GetMapping("/createEnvironment")
@@ -127,6 +130,7 @@ public class PaddingOracleController {
         if (result.contains("Congraduations! you've got the plain!")) {
             result += "\n已获取正确密文!";
             status = "success";
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } else {
             result += "\n获取正确密文失败!";
             status = "fail";
@@ -165,6 +169,8 @@ public class PaddingOracleController {
                         .setCodeType("manual_attack")
                         .setRunningDatetime(new Date())
         );
+
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
         return result;
 

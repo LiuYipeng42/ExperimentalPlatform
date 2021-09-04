@@ -8,6 +8,7 @@ import com.guet.ExperimentalPlatform.entity.AlgorithmParams;
 import com.guet.ExperimentalPlatform.entity.AlgorithmRecord;
 import com.guet.ExperimentalPlatform.service.AlgorithmRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,9 +21,12 @@ public class AlgorithmController {
 
     private final AlgorithmRecordService algorithmRecordService;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     @Autowired
-    public AlgorithmController(AlgorithmRecordService algorithmRecordService){
+    public AlgorithmController(AlgorithmRecordService algorithmRecordService, RedisTemplate<String, Object> redisTemplate){
         this.algorithmRecordService = algorithmRecordService;
+        this.redisTemplate = redisTemplate;
     }
 
     @PostMapping("/aes") // aes 加密过程
@@ -34,6 +38,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesProcedure").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -52,6 +57,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesAvalanchePlaintext").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -72,6 +78,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesAvalancheSecretKey").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -90,6 +97,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesDecryption").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -106,6 +114,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesEncryption").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -136,6 +145,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("rsaEncryption").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -152,6 +162,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("rsaDecryption").setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
@@ -168,6 +179,7 @@ public class AlgorithmController {
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm(algorithmPara.getParam2()).setStudentId(userId)
             );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } catch (Exception ignored){
         }
 
