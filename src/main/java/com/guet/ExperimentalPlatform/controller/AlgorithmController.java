@@ -79,7 +79,8 @@ public class AlgorithmController {
                     new AlgorithmRecord().setAlgorithm("aesAvalancheSecretKey").setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception ignored){
+        } catch (Exception e){
+            e.printStackTrace();
         }
 
         return JSON.parseObject(
@@ -98,7 +99,8 @@ public class AlgorithmController {
                     new AlgorithmRecord().setAlgorithm("aesDecryption").setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception ignored){
+        } catch (Exception e){
+            e.printStackTrace();
         }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py decryption "
@@ -115,7 +117,8 @@ public class AlgorithmController {
                     new AlgorithmRecord().setAlgorithm("aesEncryption").setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception ignored){
+        } catch (Exception e){
+            e.printStackTrace();
         }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py encryption "

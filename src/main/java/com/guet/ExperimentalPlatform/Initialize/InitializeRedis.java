@@ -1,9 +1,9 @@
 package com.guet.ExperimentalPlatform.Initialize;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.guet.ExperimentalPlatform.controller.ReportInformationController;
 import com.guet.ExperimentalPlatform.entity.Student;
 import com.guet.ExperimentalPlatform.mapper.StudentMapper;
+import com.guet.ExperimentalPlatform.service.UserService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,13 +19,13 @@ public class InitializeRedis implements ApplicationRunner {
 
     private final StudentMapper studentMapper;
 
-    private final ReportInformationController reportInformationController;
+    private final UserService userService;
 
     public InitializeRedis(RedisTemplate<String, Object> redisTemplate, StudentMapper studentMapper,
-                           ReportInformationController reportInformationController) {
+                           UserService userService) {
         this.redisTemplate = redisTemplate;
         this.studentMapper = studentMapper;
-        this.reportInformationController = reportInformationController;
+        this.userService = userService;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class InitializeRedis implements ApplicationRunner {
         redisTemplate.opsForValue().setBit("reportUpdate", students.size(), false);
 
         for (Student s : students) {
-            redisTemplate.opsForValue().set("report:" + s.getId(), reportInformationController.calculateScore(s));
+            redisTemplate.opsForValue().set("report:" + s.getId(), userService.calculateScore(s));
         }
 
     }
