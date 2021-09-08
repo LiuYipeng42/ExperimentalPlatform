@@ -45,7 +45,6 @@ public class CodeSimilarity {
                 if (newIndex == 0) {
                     newIndex = getNewIndex(changedFile, changedIndex, originalFile, originalIndex);
                     if (newIndex == 0) {
-
                         for (int i = originalIndex; i < originalLength; i++) {
                             for (int j = changedIndex; j < changedLength; j++) {
                                 if (originalFile.charAt(i) == changedFile.charAt(j)) {

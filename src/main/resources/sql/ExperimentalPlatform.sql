@@ -128,10 +128,10 @@ CREATE TABLE `page_name` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- ----------------------------
--- Table structure for student
+-- Table structure for user
 -- ----------------------------
-DROP TABLE IF EXISTS `student`;
-CREATE TABLE `student` (
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `account` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,

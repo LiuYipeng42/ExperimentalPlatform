@@ -1,4 +1,5 @@
 import sys
+import traceback
 
 import pymysql
 import pandas as pd
@@ -15,17 +16,20 @@ df = pd.read_excel(fileName)
 
 # 对于每一行，通过列名name访问对应的元素
 for row in range(df.shape[0]):
+
+    studentNo = int(df.loc[row].values[1])
+    studentName = df.loc[row].values[2]
+
     try:
-
-        studentNo = int(df.loc[row].values[1])
-        studentName = df.loc[row].values[2]
-
         cursor.execute(
-            "insert into student (account, password, name, class_id) values (%s, %s, %s, %s)",
+            "insert into user (account, password, name, class_id) values (%s, %s, %s, %s)",
             (studentNo, studentNo, studentName, classId)
         )
-
-    except ValueError:
-        pass
+    except:
+        exception = ""
+        value, tb = sys.exc_info()[1:]
+        for line in traceback.TracebackException(type(value), value, tb, limit=None).format(chain=True):
+            exception += line
+        print(exception)
 
 db.commit()

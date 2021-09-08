@@ -1,8 +1,8 @@
 package com.guet.ExperimentalPlatform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.guet.ExperimentalPlatform.entity.FTAllInfo;
-import com.guet.ExperimentalPlatform.entity.FTEncryptionInformation;
+import com.guet.ExperimentalPlatform.Entity.FTAllInfo;
+import com.guet.ExperimentalPlatform.Entity.FTEncryptionInformation;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

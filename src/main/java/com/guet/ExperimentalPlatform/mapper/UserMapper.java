@@ -1,9 +1,9 @@
 package com.guet.ExperimentalPlatform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.guet.ExperimentalPlatform.Entity.StudyRecord;
+import com.guet.ExperimentalPlatform.Entity.User;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface StudyRecordMapper extends BaseMapper<StudyRecord> {
+public interface UserMapper extends BaseMapper<User> {
 }

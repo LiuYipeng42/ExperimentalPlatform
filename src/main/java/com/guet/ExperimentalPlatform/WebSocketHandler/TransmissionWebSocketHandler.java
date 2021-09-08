@@ -3,7 +3,7 @@ package com.guet.ExperimentalPlatform.WebSocketHandler;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
-import com.guet.ExperimentalPlatform.service.FileTransmissionService;
+import com.guet.ExperimentalPlatform.Service.FileTransmissionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;

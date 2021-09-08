@@ -1,8 +1,7 @@
 package com.guet.ExperimentalPlatform.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.guet.ExperimentalPlatform.entity.MD5TaskRecord;
-import com.guet.ExperimentalPlatform.entity.PORunCodesRecord;
+import com.guet.ExperimentalPlatform.Entity.PORunCodesRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper

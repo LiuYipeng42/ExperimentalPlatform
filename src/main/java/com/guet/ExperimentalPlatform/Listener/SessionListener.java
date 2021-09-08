@@ -2,10 +2,10 @@ package com.guet.ExperimentalPlatform.Listener;
 
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.guet.ExperimentalPlatform.entity.StudyRecord;
-import com.guet.ExperimentalPlatform.service.MD5CollisionService;
-import com.guet.ExperimentalPlatform.service.PaddingOracleService;
-import com.guet.ExperimentalPlatform.service.StudyRecordService;
+import com.guet.ExperimentalPlatform.Entity.StudyRecord;
+import com.guet.ExperimentalPlatform.Service.MD5CollisionService;
+import com.guet.ExperimentalPlatform.Service.PaddingOracleService;
+import com.guet.ExperimentalPlatform.Service.StudyRecordService;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
 package com.guet.ExperimentalPlatform.Interceptor;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.guet.ExperimentalPlatform.entity.Student;
-import com.guet.ExperimentalPlatform.service.UserService;
+import com.guet.ExperimentalPlatform.Entity.User;
+import com.guet.ExperimentalPlatform.Service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.server.ServerHttpRequest;
@@ -40,7 +40,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
             System.out.println(userService);
             long userId = userService.getOne(
-                    new QueryWrapper<Student>().eq("account", userAccount)
+                    new QueryWrapper<User>().eq("account", userAccount)
             ).getId();
 
             map.put("userId", userId);

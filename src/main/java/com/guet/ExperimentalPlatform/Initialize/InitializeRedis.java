@@ -1,9 +1,9 @@
 package com.guet.ExperimentalPlatform.Initialize;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.guet.ExperimentalPlatform.entity.Student;
-import com.guet.ExperimentalPlatform.mapper.StudentMapper;
-import com.guet.ExperimentalPlatform.service.UserService;
+import com.guet.ExperimentalPlatform.Entity.User;
+import com.guet.ExperimentalPlatform.mapper.UserMapper;
+import com.guet.ExperimentalPlatform.Service.UserService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,27 +17,27 @@ public class InitializeRedis implements ApplicationRunner {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private final StudentMapper studentMapper;
+    private final UserMapper userMapper;
 
     private final UserService userService;
 
-    public InitializeRedis(RedisTemplate<String, Object> redisTemplate, StudentMapper studentMapper,
+    public InitializeRedis(RedisTemplate<String, Object> redisTemplate, UserMapper userMapper,
                            UserService userService) {
         this.redisTemplate = redisTemplate;
-        this.studentMapper = studentMapper;
+        this.userMapper = userMapper;
         this.userService = userService;
     }
 
     @Override
     public void run(ApplicationArguments args) {
 
-        List<Student> students = studentMapper.selectList(
+        List<User> users = userMapper.selectList(
                 new QueryWrapper<>()
         );
 
-        redisTemplate.opsForValue().setBit("reportUpdate", students.size(), false);
+        redisTemplate.opsForValue().setBit("reportUpdate", users.size(), false);
 
-        for (Student s : students) {
+        for (User s : users) {
             redisTemplate.opsForValue().set("report:" + s.getId(), userService.calculateScore(s));
         }
 

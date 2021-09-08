@@ -1,6 +1,5 @@
 package com.guet.ExperimentalPlatform;
 
-import com.guet.ExperimentalPlatform.entity.Student;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -20,12 +19,6 @@ public class FileTransmissionApplicationTests {
     @Test
     public void test() {
 
-//        redisTemplate.opsForValue().setBit("reportUpdate", 105, false);
-//
-//        for (int i = 0; i < 106; i++) {
-//            System.out.println(redisTemplate.opsForValue().getBit("reportUpdate", i));
-//        }
-//        redisTemplate.delete("reportUpdate");
     }
 
 }
