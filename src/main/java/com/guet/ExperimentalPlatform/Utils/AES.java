@@ -28,7 +28,7 @@ public class AES {
     }
 
     // 解密
-    public static String Decrypt(String sSrc, String sKey) throws Exception {
+    public static String Decrypt(String sSrc, String sKey) {
         try {
             // 判断Key是否正确
             if (sKey == null) {
@@ -49,11 +49,11 @@ public class AES {
                 String originalString = new String(original);
                 return originalString;
             } catch (Exception e) {
-                System.out.println(e.toString());
+                System.out.println(e);
                 return null;
             }
         } catch (Exception ex) {
-            System.out.println(ex.toString());
+            System.out.println(ex);
             return null;
         }
     }

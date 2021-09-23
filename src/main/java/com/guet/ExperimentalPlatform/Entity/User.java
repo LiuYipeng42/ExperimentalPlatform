@@ -21,8 +21,10 @@ public class User {
 
     private String name;
 
-    private String classId;
+    private String identity;
 
     private String summary;
+
+    private String comment;
 
 }

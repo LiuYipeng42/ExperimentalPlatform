@@ -4,7 +4,7 @@ package com.guet.ExperimentalPlatform.Controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
-import com.guet.ExperimentalPlatform.Entity.AlgorithmParams;
+import com.guet.ExperimentalPlatform.pojo.AlgorithmParams;
 import com.guet.ExperimentalPlatform.Entity.AlgorithmRecord;
 import com.guet.ExperimentalPlatform.Service.AlgorithmRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,9 +32,10 @@ public class AlgorithmController {
     @PostMapping("/aes") // aes 加密过程
     public JSONObject Aes(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesProcedure").setStudentId(userId)
             );
@@ -51,9 +52,10 @@ public class AlgorithmController {
     @PostMapping("/aesice/plaintext") // aes 更改明文比较
     public JSONObject getPlaintext(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesAvalanchePlaintext").setStudentId(userId)
             );
@@ -72,9 +74,10 @@ public class AlgorithmController {
     @PostMapping("/aesice/secret") // aes 更改密文比较
     public JSONObject getSecretKey(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesAvalancheSecretKey").setStudentId(userId)
             );
@@ -92,9 +95,10 @@ public class AlgorithmController {
     @PostMapping("/aes/decryption") // aes 解密
     public String AESDecryption(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesDecryption").setStudentId(userId)
             );
@@ -110,9 +114,10 @@ public class AlgorithmController {
     @PostMapping("/aes/encryption") // aes 加密
     public String AESEncryption(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("aesEncryption").setStudentId(userId)
             );
@@ -142,9 +147,10 @@ public class AlgorithmController {
     @PostMapping("/rsaCalculateC")  // rsa 加密
     public String rsaCalculateC(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("rsaEncryption").setStudentId(userId)
             );
@@ -159,9 +165,10 @@ public class AlgorithmController {
     @PostMapping("/rsaCalculateM")  // rsa 解密
     public String rsaCalculateM(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm("rsaDecryption").setStudentId(userId)
             );
@@ -176,9 +183,10 @@ public class AlgorithmController {
     @PostMapping("/hash")  // 5 种 hash
     public String hash(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-
         try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
             algorithmRecordService.save(
                     new AlgorithmRecord().setAlgorithm(algorithmPara.getParam2()).setStudentId(userId)
             );

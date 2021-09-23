@@ -1,4 +1,4 @@
-package com.guet.ExperimentalPlatform.Entity;
+package com.guet.ExperimentalPlatform.pojo;
 
 import lombok.Data;
 

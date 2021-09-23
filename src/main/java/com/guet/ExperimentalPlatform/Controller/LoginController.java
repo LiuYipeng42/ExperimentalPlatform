@@ -2,9 +2,7 @@ package com.guet.ExperimentalPlatform.Controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.Utils.AES;
-import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 import com.guet.ExperimentalPlatform.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,9 +44,12 @@ public class LoginController {
 
         String secretKey = loginForm.account + loginForm.account.substring(4);
 
+        System.out.println(1);
         loginForm.password = AES.Decrypt(loginForm.password, secretKey);
 
+        System.out.println(2);
         String loginResult = userService.login(loginForm);
+        System.out.println(3);
 
         System.out.println(request.getSession());
 
@@ -67,22 +68,12 @@ public class LoginController {
 
             result.remove("loginRecordId");
             result.remove("userId");
-
+            System.out.println(4);
             System.out.println(result);
 
             return AES.Encrypt(result.toString(), secretKey);
         }
 
-    }
-
-    @GetMapping("/changePasswd")
-    public void changePassword(HttpServletRequest request, @RequestParam("passwd") String newPassword){
-
-        long userId = (long) request.getSession().getAttribute("userId");
-
-        userService.update(
-                new UpdateWrapper<User>().set("password", newPassword).eq("id", userId)
-        );
     }
 
 }

@@ -1,15 +1,16 @@
 package com.guet.ExperimentalPlatform.Initialize;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.mapper.UserMapper;
 import com.guet.ExperimentalPlatform.Service.UserService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @Component
@@ -31,9 +32,10 @@ public class InitializeRedis implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        List<User> users = userMapper.selectList(
-                new QueryWrapper<>()
-        );
+        RedisConnection connection = Objects.requireNonNull(redisTemplate.getConnectionFactory()).getConnection();
+        connection.flushDb();
+
+        List<User> users = userMapper.getAllStudents();
 
         redisTemplate.opsForValue().setBit("reportUpdate", users.size(), false);
 

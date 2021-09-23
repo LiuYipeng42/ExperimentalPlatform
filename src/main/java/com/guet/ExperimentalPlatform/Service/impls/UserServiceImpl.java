@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.guet.ExperimentalPlatform.Entity.*;
 import com.guet.ExperimentalPlatform.mapper.*;
+import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 
 import com.guet.ExperimentalPlatform.Service.UserService;
@@ -52,7 +53,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     public String login(LoginForm loginForm) {
         User user = userMapper.selectOne(
-                new QueryWrapper<User>().eq("account", loginForm.account)
+                new QueryWrapper<User>().select("password", "name", "id").eq("account", loginForm.account)
         );
 
         if (user == null) {
@@ -91,10 +92,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         );
     }
 
+    @Override
+    public ClassPage<User> selectClassPage(ClassPage<User> classPage) {
+        return userMapper.selectClassPage(classPage);
+    }
+
+    @Override
+    public List<User> selectUserByClassNum(String classNum) {
+        return userMapper.selectUserByClassNum(classNum);
+    }
+
+    @Override
+    public Integer countStudentsByClassNum(String classNum) {
+        return userMapper.countStudentsByClassNum(classNum);
+    }
+
     public JSONObject[] getStudentsInfo(List<User> users) {
         JSONObject[] studentsJSON = new JSONObject[users.size()];
         int index = 0;
-
 
         String score;
         JSONObject scoreJSON;
@@ -107,10 +122,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             studentJSON.put("account", user.getAccount());
             studentJSON.put("name", user.getName());
             studentJSON.put("score", Double.parseDouble(score));
+//            studentJSON.put("classId", user.getClassNum());
             studentsJSON[index] = studentJSON;
             index++;
         }
-
 
         return studentsJSON;
     }
@@ -327,6 +342,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             summary = "";
         }
 
+        String comment = user.getComment();
+        if (comment == null) {
+            comment = "";
+        }
+
         JSONObject jsonObject = new JSONObject();
 
         jsonObject.put("算法基础", algorithmScore);
@@ -337,6 +357,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         jsonObject.put("MD5任务耗时", md5TaskTime);
         jsonObject.put("代码考核测试耗时", codeTestTime);
         jsonObject.put("总结", summary);
+        jsonObject.put("评价", comment);
 
         return jsonObject.toJSONString();
     }

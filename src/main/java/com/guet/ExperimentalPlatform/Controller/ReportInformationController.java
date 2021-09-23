@@ -21,7 +21,6 @@ import java.util.List;
 public class ReportInformationController {
 
     private final UserService userService;
-
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
@@ -33,9 +32,25 @@ public class ReportInformationController {
     @PostMapping("/saveSummary")
     public void saveSummary(HttpServletRequest request) {
         long userId = (long) request.getSession().getAttribute("userId");
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
         userService.update(
                 new UpdateWrapper<User>().set("summary", FileOperation.getPostData(request)).eq("id", userId)
+        );
+
+    }
+
+    @PostMapping("/saveComment")
+    public void saveComment(HttpServletRequest request, @RequestParam("userAccount") String userAccount) {
+
+        long userId = userService.getOne(
+                new QueryWrapper<User>().eq("account", userAccount)
+        ).getId();
+
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+
+        userService.update(
+                new UpdateWrapper<User>().set("comment", FileOperation.getPostData(request)).eq("id", userId)
         );
 
     }
@@ -55,9 +70,7 @@ public class ReportInformationController {
         if (classId.equals("all")) {
             users = userService.list();
         } else {
-            users = userService.list(
-                    new QueryWrapper<User>().eq("class_id", classId)
-            );
+            users = userService.selectUserByClassNum(classId);
         }
 
         int[] count = {0, 0, 0, 0, 0};

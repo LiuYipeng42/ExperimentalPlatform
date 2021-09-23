@@ -32,14 +32,15 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
         client = DockerClientBuilder.getInstance(config).build();
     }
 
-    public boolean createEnvironment(String containerName, String imageName) {
+    public boolean createEnvironment(String userId, String imageName) {
 
         try {
             CreateContainerResponse container;
-            // 创建容器
 
+            System.out.println(userId);
+            // 创建容器
             container = client.createContainerCmd(imageName)
-                    .withName(containerName).exec();
+                    .withName("container" + userId).exec();
 
             String containerId = container.getId();
 
@@ -55,14 +56,14 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
             System.out.println(containerIP);
 
             userIdContainer.put(
-                    containerName,
+                    userId,
                     new ContainerInfo()
                             .setContainerId(containerId)
                             .setContainerIP(containerIP)
             );
 
             // 复制文件
-            copyCodes(containerName);
+            copyCodes(userId);
 
         } catch (ConflictException e) {
             return true;
@@ -71,8 +72,8 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
         return true;
     }
 
-    public void closeEnvironment(String containerName){
-        ContainerInfo containerInfo = userIdContainer.get(containerName);
+    public void closeEnvironment(String userId){
+        ContainerInfo containerInfo = userIdContainer.get("container" + userId);
         if (containerInfo != null) {
 
             String containerId = containerInfo.getContainerId();
@@ -81,9 +82,9 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
             // 删除容器
             client.removeContainerCmd(containerId).exec();
             // 删除文件
-            userIdContainer.remove(containerName);
-            new File("PaddingOracleFiles/ExperimentDataFile/" + containerName + "_manual_attack.py").delete();
-            new File("PaddingOracleFiles/ExperimentDataFile/" + containerName + "_auto_attack.py").delete();
+            userIdContainer.remove(userId);
+            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py").delete();
+            new File("PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py").delete();
         }
 
     }

@@ -62,9 +62,9 @@ public class MD5FinishTask {
                         !(userCommands.contains("sha256sumout1_long.bin") && userCommands.contains("sha256sumout2_long.bin"))) {
                     return "没有进行 sha256sum 命令检验";
                 }
-                if (!userCommands.contains("md5sumout1.binout2.bin") &&
-                        !userCommands.contains("md5sumout2.binout1.bin") &&
-                        !(userCommands.contains("md5sumout1.bin") && userCommands.contains("md5sumout2.bin"))) {
+                if (!userCommands.contains("md5sumout1_long.binout2_long.bin") &&
+                        !userCommands.contains("md5sumout2_long.binout1_long.bin") &&
+                        !(userCommands.contains("md5sumout1_long.bin") && userCommands.contains("md5sumout2_long.bin"))) {
                     return "没有进行 md5sum 命令检验";
                 }
                 break;

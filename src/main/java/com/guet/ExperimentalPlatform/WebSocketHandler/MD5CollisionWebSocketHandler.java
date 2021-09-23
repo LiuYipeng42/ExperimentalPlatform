@@ -179,6 +179,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
             } else if (command.startsWith("saveFile ")) {
 
                 JSONObject messageJsonObject = JSON.parseObject(command.substring(8));
+                System.out.println(filePath + "/" + messageJsonObject.getString("fileName"));
                 FileOperation.writeFile(filePath + "/" + messageJsonObject.getString("fileName"),
                         messageJsonObject.getString("data"));
 
