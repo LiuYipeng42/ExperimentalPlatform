@@ -82,7 +82,7 @@ public class UserController {
             users = userService.list(new QueryWrapper<User>().eq(type, condition));
         }
 
-        return userService.getStudentsInfo(users);
+        return userService.getStudentsScore(users);
     }
 
     @PostMapping("/delete")
@@ -166,7 +166,7 @@ public class UserController {
 
         JSONObject result = new JSONObject();
         result.put("pageNum", pageNum);
-        result.put("students", userService.getStudentsInfo(users));
+        result.put("students", userService.getStudentsScore(users));
 
         return result;
     }

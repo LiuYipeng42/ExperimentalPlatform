@@ -50,13 +50,15 @@ public class SessionListener implements HttpSessionListener {
 
             HttpSession session = arg0.getSession();
 
+            System.out.println(session);
+
             getAttributes(session);
 
             long userId = (long) session.getAttribute("userId");
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 30);
+            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 10);
 
             studyRecordService.update(
                     new UpdateWrapper<StudyRecord>()

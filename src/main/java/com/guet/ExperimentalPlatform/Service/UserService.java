@@ -7,17 +7,21 @@ import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 public interface UserService extends IService<User> {
     String login(LoginForm loginForm);
 
-    String calculateScore(User user);
+    Map<String, Object> calculateScore(User user);
 
-    String getReport(User user);
+    Map<String, Object> getReport(User user);
 
-    JSONObject[] getStudentsInfo(List<User> users);
+    JSONObject[] getStudentsScore(List<User> users);
+
+    void generateStudentScoreFile(String classId) throws IOException;
 
     void deleteStudents(String column, String condition);
 

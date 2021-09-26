@@ -1,6 +1,5 @@
 package com.guet.ExperimentalPlatform.Service.impls;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,13 +9,20 @@ import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 
 import com.guet.ExperimentalPlatform.Service.UserService;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -107,16 +113,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userMapper.countStudentsByClassNum(classNum);
     }
 
-    public JSONObject[] getStudentsInfo(List<User> users) {
+    public void generateStudentScoreFile(String classId) throws IOException {
+        String[] tittles = {"学号", "姓名", "认知理解能力", "操作实践能力", "攻防拓展能力", "总分"};
+        List<User> students = userMapper.selectUserByClassNum(classId);
+
+        Workbook workbook = new HSSFWorkbook();
+        // 2.根据 workbook 创建 sheet
+        Sheet sheet = workbook.createSheet("1920746");
+        sheet.setColumnWidth(0, 14 * 256);
+        sheet.setColumnWidth(2, 14 * 256);
+        sheet.setColumnWidth(3, 14 * 256);
+        sheet.setColumnWidth(4, 14 * 256);
+
+        // 3.根据 sheet 创建 row
+        Row tittle = sheet.createRow(0);
+
+        for (int i = 0; i < tittles.length; i++) {
+            tittle.createCell(i).setCellValue(tittles[i]);
+        }
+
+        User student;
+        Map<String, Object> report;
+        for (int r = 0; r < students.size(); r++) {
+            student = students.get(r);
+            report = getReport(student);
+
+            Row row = sheet.createRow(r + 1);
+
+            row.createCell(0).setCellValue(student.getAccount());
+            row.createCell(1).setCellValue(student.getName());
+            row.createCell(2).setCellValue(Double.parseDouble((String) report.get("算法基础")));
+            row.createCell(3).setCellValue(Double.parseDouble((String) report.get("数字信封")));
+            row.createCell(4).setCellValue(Double.parseDouble((String) report.get("算法攻击")));
+            row.createCell(5).setCellValue(Double.parseDouble((String) report.get("总分")));
+
+        }
+
+        FileOutputStream fos = new FileOutputStream("StudentScoreFiles/" + classId + "学生成绩.xls");
+        workbook.write(fos);
+        fos.close();
+    }
+
+
+    public JSONObject[] getStudentsScore(List<User> users) {
         JSONObject[] studentsJSON = new JSONObject[users.size()];
         int index = 0;
 
         String score;
-        JSONObject scoreJSON;
+        Map<String, Object> scoreMap;
         JSONObject studentJSON;
         for (User user : users) {
-            scoreJSON = JSON.parseObject(getReport(user));
-            score = (String) scoreJSON.get("总分");
+            scoreMap = getReport(user);
+            score = (String) scoreMap.get("总分");
 
             studentJSON = new JSONObject();
             studentJSON.put("account", user.getAccount());
@@ -130,10 +178,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return studentsJSON;
     }
 
-    public String getReport(User user) {
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getReport(User user) {
 
         long userId = user.getId();
-        String newReport;
+        Map<String, Object> newReport;
         if (Boolean.TRUE.equals(redisTemplate.opsForValue().getBit("reportUpdate", userId))) {
             newReport = calculateScore(user);
             redisTemplate.opsForValue().set("report:" + userId, newReport);
@@ -141,7 +190,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return newReport;
         } else {
 
-            String report = (String) redisTemplate.opsForValue().get("report:" + userId);
+            Map<String, Object> report = (Map<String, Object>) redisTemplate.opsForValue().get("report:" + userId);
 
             if(report == null){
                 newReport = calculateScore(user);
@@ -155,7 +204,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public String calculateScore(User user) {
+    public Map<String, Object> calculateScore(User user) {
         long userId = user.getId();
         double algorithmScore;
         double algorithmAttackScore;
@@ -349,9 +398,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         JSONObject jsonObject = new JSONObject();
 
-        jsonObject.put("算法基础", algorithmScore);
-        jsonObject.put("算法攻击", algorithmAttackScore);
-        jsonObject.put("数字信封", digitalEnvelopeScore);
+        jsonObject.put("算法基础", String.format("%.2f", algorithmScore));
+        jsonObject.put("算法攻击", String.format("%.2f", algorithmAttackScore));
+        jsonObject.put("数字信封", String.format("%.2f", digitalEnvelopeScore));
         jsonObject.put("总分", String.format("%.2f", algorithmScore * 0.2 + algorithmAttackScore * 0.3 + digitalEnvelopeScore * 0.5));
         jsonObject.put("页面停留时间", studyTime);
         jsonObject.put("MD5任务耗时", md5TaskTime);
@@ -359,7 +408,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         jsonObject.put("总结", summary);
         jsonObject.put("评价", comment);
 
-        return jsonObject.toJSONString();
+        return jsonObject;
     }
 
 }
