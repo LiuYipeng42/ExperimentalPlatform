@@ -21,7 +21,7 @@ public interface UserService extends IService<User> {
 
     JSONObject[] getStudentsScore(List<User> users);
 
-    void generateStudentScoreFile(String classId) throws IOException;
+    void generateStudentScoreFile(String[] classes) throws IOException;
 
     void deleteStudents(String column, String condition);
 

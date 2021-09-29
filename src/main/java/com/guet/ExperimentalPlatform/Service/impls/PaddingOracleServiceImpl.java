@@ -73,7 +73,7 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
     }
 
     public void closeEnvironment(String userId){
-        ContainerInfo containerInfo = userIdContainer.get("container" + userId);
+        ContainerInfo containerInfo = userIdContainer.get(userId);
         if (containerInfo != null) {
 
             String containerId = containerInfo.getContainerId();

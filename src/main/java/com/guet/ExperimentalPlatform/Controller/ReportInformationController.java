@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -115,12 +116,12 @@ public class ReportInformationController {
 
     }
 
-    @GetMapping("/downLoadScores")
-    public ResponseEntity<ByteArrayResource> downLoadReports(@RequestParam("classId") String classId) throws IOException {
+    @PostMapping("/downLoadScores")
+    public ResponseEntity<ByteArrayResource> downLoadReports(@RequestBody String[] classes) throws IOException {
 
-        userService.generateStudentScoreFile(classId);
+        userService.generateStudentScoreFile(classes);
 
-        File file = new File("StudentScoreFiles/" + classId + "学生成绩.xls");
+        File file = new File("StudentScoreFiles/学生成绩.xls");
 
         HttpHeaders header = new HttpHeaders();
 
@@ -131,7 +132,7 @@ public class ReportInformationController {
         // 如果需要提示用户保存，就要利用 Content-Disposition 进行一下处理，关键在于一定要加上attachment：
         header.add(
                 HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=" + URLEncoder.encode(classId + "学生成绩.xls", StandardCharsets.UTF_8)
+                "attachment; filename=" + URLEncoder.encode("学生成绩.xls", StandardCharsets.UTF_8)
         );
 
         // 清除缓存
@@ -149,5 +150,4 @@ public class ReportInformationController {
                 .body(resource);
 
     }
-
 }

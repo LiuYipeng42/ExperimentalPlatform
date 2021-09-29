@@ -19,7 +19,7 @@ public class FileTransmissionApplicationTests {
 
     @Test
     public void test() throws Exception {
-
+//        userService.generateStudentScoreFile(new String[]{"1920746", "2112618"});
     }
 
 }

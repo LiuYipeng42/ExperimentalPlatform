@@ -113,47 +113,74 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userMapper.countStudentsByClassNum(classNum);
     }
 
-    public void generateStudentScoreFile(String classId) throws IOException {
-        String[] tittles = {"学号", "姓名", "认知理解能力", "操作实践能力", "攻防拓展能力", "总分"};
-        List<User> students = userMapper.selectUserByClassNum(classId);
+    @SuppressWarnings("unchecked")
+    public void generateStudentScoreFile(String[] classes) throws IOException {
 
+        String[] tittles = {"学号", "姓名", "代码测试耗时", "数字信封页面停留时间", "MD5碰撞耗时", "PaddingOracle页面停留时间", "认知理解能力", "操作实践能力", "攻防拓展能力", "总分"};
         Workbook workbook = new HSSFWorkbook();
-        // 2.根据 workbook 创建 sheet
-        Sheet sheet = workbook.createSheet("1920746");
-        sheet.setColumnWidth(0, 14 * 256);
-        sheet.setColumnWidth(2, 14 * 256);
-        sheet.setColumnWidth(3, 14 * 256);
-        sheet.setColumnWidth(4, 14 * 256);
 
-        // 3.根据 sheet 创建 row
-        Row tittle = sheet.createRow(0);
+        for (String classId: classes) {
+            List<User> students = userMapper.selectUserByClassNum(classId);
 
-        for (int i = 0; i < tittles.length; i++) {
-            tittle.createCell(i).setCellValue(tittles[i]);
+            // 2.根据 workbook 创建 sheet
+            Sheet sheet = workbook.createSheet(classId);
+            sheet.setColumnWidth(0, 13 * 256);
+            sheet.setColumnWidth(2, 14 * 256);
+            sheet.setColumnWidth(3, 20 * 256);
+            sheet.setColumnWidth(4, 13 * 256);
+            sheet.setColumnWidth(5, 24 * 256);
+            sheet.setColumnWidth(6, 13 * 256);
+            sheet.setColumnWidth(7, 13 * 256);
+            sheet.setColumnWidth(8, 13 * 256);
+
+            // 3.根据 sheet 创建 row
+            Row tittle = sheet.createRow(0);
+
+            for (int i = 0; i < tittles.length; i++) {
+                tittle.createCell(i).setCellValue(tittles[i]);
+            }
+
+            User student;
+            Map<String, Object> report;
+            double codeTestTime;
+            double md5CollisionTime;
+            HashMap<String, Double> stayTime;
+
+            for (int r = 0; r < students.size(); r++) {
+                student = students.get(r);
+                report = getReport(student);
+
+                codeTestTime = 0;
+                for (Double time: ((HashMap<String, Double>) report.get("代码考核测试耗时")).values()) {
+                    codeTestTime += time;
+                }
+
+                md5CollisionTime = 0;
+                for (Double time: ((HashMap<String, Double>) report.get("MD5任务耗时")).values()) {
+                    md5CollisionTime += time;
+                }
+
+                stayTime = (HashMap<String, Double>) report.get("页面停留时间");
+
+                Row row = sheet.createRow(r + 1);
+                row.createCell(0).setCellValue(student.getAccount());
+                row.createCell(1).setCellValue(student.getName());
+                row.createCell(2).setCellValue(Double.parseDouble(String.format("%.2f", codeTestTime)));
+                row.createCell(3).setCellValue(stayTime.get("1"));
+                row.createCell(4).setCellValue(md5CollisionTime);
+                row.createCell(5).setCellValue(stayTime.get("2"));
+                row.createCell(6).setCellValue(Double.parseDouble((String) report.get("算法基础")));
+                row.createCell(7).setCellValue(Double.parseDouble((String) report.get("数字信封")));
+                row.createCell(8).setCellValue(Double.parseDouble((String) report.get("算法攻击")));
+                row.createCell(9).setCellValue(Double.parseDouble((String) report.get("总分")));
+
+            }
         }
 
-        User student;
-        Map<String, Object> report;
-        for (int r = 0; r < students.size(); r++) {
-            student = students.get(r);
-            report = getReport(student);
-
-            Row row = sheet.createRow(r + 1);
-
-            row.createCell(0).setCellValue(student.getAccount());
-            row.createCell(1).setCellValue(student.getName());
-            row.createCell(2).setCellValue(Double.parseDouble((String) report.get("算法基础")));
-            row.createCell(3).setCellValue(Double.parseDouble((String) report.get("数字信封")));
-            row.createCell(4).setCellValue(Double.parseDouble((String) report.get("算法攻击")));
-            row.createCell(5).setCellValue(Double.parseDouble((String) report.get("总分")));
-
-        }
-
-        FileOutputStream fos = new FileOutputStream("StudentScoreFiles/" + classId + "学生成绩.xls");
+        FileOutputStream fos = new FileOutputStream("StudentScoreFiles/学生成绩.xls");
         workbook.write(fos);
         fos.close();
     }
-
 
     public JSONObject[] getStudentsScore(List<User> users) {
         JSONObject[] studentsJSON = new JSONObject[users.size()];
@@ -170,7 +197,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             studentJSON.put("account", user.getAccount());
             studentJSON.put("name", user.getName());
             studentJSON.put("score", Double.parseDouble(score));
-//            studentJSON.put("classId", user.getClassNum());
             studentsJSON[index] = studentJSON;
             index++;
         }
