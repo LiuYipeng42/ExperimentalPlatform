@@ -35,6 +35,7 @@ public class TimerController {
         pageType.put("aesProcedure", "7");
         pageType.put("aesAvalanche", "8");
         pageType.put("codeTest", "9");
+        pageType.put("others", "");
     }
 
     @Autowired
@@ -44,7 +45,7 @@ public class TimerController {
     }
 
     @GetMapping("/heartbeat")
-    public void heartbeat(HttpServletRequest request,
+    public String heartbeat(HttpServletRequest request,
                           @RequestParam("page") String nextPage) {
 
         System.out.println(nextPage);
@@ -58,7 +59,12 @@ public class TimerController {
         String presentPageRecordId;
         String nextPageRecordId;
 
-        userId = (long) session.getAttribute("userId");
+        try {
+            userId = (long) session.getAttribute("userId");
+        }catch (NullPointerException e){
+            System.out.println("heartbeat: session失效");
+            return "SessionDestroyed";
+        }
 
         if (!nextPage.equals(presentPage)) {
             // 页面发生切换
@@ -112,5 +118,6 @@ public class TimerController {
 
         redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
 
+        return "success";
     }
 }

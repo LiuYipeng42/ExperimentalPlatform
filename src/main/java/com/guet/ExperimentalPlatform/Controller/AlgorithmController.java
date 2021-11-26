@@ -63,12 +63,13 @@ public class AlgorithmController {
         } catch (Exception ignored){
         }
 
-        return JSON.parseObject(
-                RunCMD.execute(
-                        "python3 Algorithms/AES_ice.py encryption_plaintext "
-                                + algorithmPara.getParam1() + " " + algorithmPara.getParam2()
-                )
+        String result = RunCMD.execute(
+                "python3 Algorithms/AES_ice.py different_plaintext "
+                        + algorithmPara.getParam1() + " " + algorithmPara.getParam2()
         );
+
+        System.out.println(result);
+        return JSON.parseObject(result);
     }
 
     @PostMapping("/aesice/secret") // aes 更改密文比较
@@ -82,12 +83,11 @@ public class AlgorithmController {
                     new AlgorithmRecord().setAlgorithm("aesAvalancheSecretKey").setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception ignored){
         }
 
         return JSON.parseObject(
-                RunCMD.execute("python3 Algorithms/AES_ice.py encryption_secret_key "
+                RunCMD.execute("python3 Algorithms/AES_ice.py different_key "
                         + algorithmPara.getParam1() + " " + algorithmPara.getParam2())
         );
     }
@@ -100,15 +100,14 @@ public class AlgorithmController {
             long userId = (long) request.getSession().getAttribute("userId");
 
             algorithmRecordService.save(
-                    new AlgorithmRecord().setAlgorithm("aesDecryption").setStudentId(userId)
+                    new AlgorithmRecord().setAlgorithm("aesDecryption-" + algorithmPara.getType()).setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception ignored){
         }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py decryption "
-                        + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
+                        + algorithmPara.getParam1() + " " + algorithmPara.getParam2() + " " + algorithmPara.getType());
     }
 
     @PostMapping("/aes/encryption") // aes 加密
@@ -119,15 +118,14 @@ public class AlgorithmController {
             long userId = (long) request.getSession().getAttribute("userId");
 
             algorithmRecordService.save(
-                    new AlgorithmRecord().setAlgorithm("aesEncryption").setStudentId(userId)
+                    new AlgorithmRecord().setAlgorithm("aesEncryption-" + algorithmPara.getType()).setStudentId(userId)
             );
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } catch (Exception e){
-            e.printStackTrace();
+        } catch (Exception ignored){
         }
 
         return RunCMD.execute("python3 Algorithms/AES_For_Result.py encryption "
-                        + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
+                        + algorithmPara.getParam1() + " " + algorithmPara.getParam2() + " " + algorithmPara.getType());
     }
 
     @PostMapping("/caesar")
@@ -196,6 +194,23 @@ public class AlgorithmController {
 
         return RunCMD.execute("python3 Algorithms/Hash.py "
                 + algorithmPara.getParam1() + " " + algorithmPara.getParam2());
+    }
+
+    @GetMapping("/md5")
+    public String md5(HttpServletRequest request, @RequestParam("plaintext") String plaintext) throws IOException {
+
+        try {
+
+            long userId = (long) request.getSession().getAttribute("userId");
+
+            algorithmRecordService.save(
+                    new AlgorithmRecord().setAlgorithm("md5").setStudentId(userId)
+            );
+            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+        } catch (Exception ignored){
+        }
+
+        return RunCMD.execute("python3 Algorithms/MD5_Final_Edition.py " + plaintext);
     }
 
 }

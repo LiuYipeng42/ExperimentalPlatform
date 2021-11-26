@@ -40,9 +40,9 @@ public class CMDResult {
         return result.toString();
     }
 
+    public static void getResult(Process process, long timeOut, WebSocketSession session) {
 
-    public static void getResult(Process process, WebSocketSession session, long timeOut){
-
+        // 计时器线程
         if (timeOut > 0) {
             new Thread(
                     () -> {
@@ -60,18 +60,21 @@ public class CMDResult {
         FutureTask<String> futureTask = null;
         String lastResult;
         String result = "";
-        int lastLoop = 0;
-        double count = 0;
-        int second = 0;
+        long start = System.currentTimeMillis();
+        long t1 = start;
+        long t2;
 
         try {
-            while (lastLoop < 2){
+
+            while (true) {
 
                 lastResult = result;
 
+                // 若获取结果的线程结束，则再次创建
                 if (resultThread == null || !resultThread.isAlive()) {
                     if (futureTask != null) {
                         result = futureTask.get();
+                        System.out.println(result);
                         session.sendMessage(new TextMessage(result));
                     }
                     futureTask = new FutureTask<>(new ProcessResult(process));
@@ -79,30 +82,32 @@ public class CMDResult {
                     resultThread.start();
                 }
 
+                // 当前程序输出结果若与上次程序输出的结果相同，则表明程序此时正在运行，结果还没有输出
                 if (result.equals(lastResult)) {
-                    count += 0.1;
-                    if (count >= 1){
-                        count = 0;
-                        second += 1;
-                        session.sendMessage(new TextMessage("running " + second + " seconds\n"));
+                    t2 = System.currentTimeMillis();
+                    if (t2 - t1 >= 1000){
+                        session.sendMessage(new TextMessage("running " + (t2 - start) / 1000 + " seconds\n"));
+                        t1 = t2;
                     }
                 }
 
-                if (!process.isAlive()){
-                    lastLoop ++;
+                if (!process.isAlive()) {
+                    break;
                 }
 
-                Thread.sleep(100);
+                Thread.sleep(200);
             }
 
         } catch (InterruptedException | ExecutionException | IOException e) {
             e.printStackTrace();
         }
-
     }
+
 
 }
 
+
+// 用于获取运行结果
 class ProcessResult implements Callable<String> {
 
     private final Process process;
@@ -123,6 +128,7 @@ class ProcessResult implements Callable<String> {
 
                 line = input.readLine();
 
+                // 若某一行为空，则结束线程
                 if (line == null || line.length() == 0) {
                     break;
                 }

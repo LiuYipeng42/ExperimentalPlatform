@@ -1,5 +1,6 @@
 package com.guet.ExperimentalPlatform.Utils;
 
+
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.*;
@@ -9,14 +10,12 @@ public class RunCMD {
     public static void execute(String command, String path, WebSocketSession session) throws IOException {
 
         Runtime runtime = Runtime.getRuntime();
-
         String[] cmd = {"/bin/sh", "-c", "cd " + path + ";" + command};
 
         Process process;
 
         process = runtime.exec(cmd);
-        CMDResult.getResult(process, session, -1);
-
+        CMDResult.getResult(process, -1, session);
     }
 
     public static String execute(String command, String path) throws IOException {

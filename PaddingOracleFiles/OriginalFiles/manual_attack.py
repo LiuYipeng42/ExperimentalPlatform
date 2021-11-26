@@ -40,8 +40,8 @@ if __name__ == "__main__":
     IV    = iv_and_ctext[00:16]
     C1    = iv_and_ctext[16:32]  # 1st block of ciphertext
     C2    = iv_and_ctext[32:48]  # 2nd block of ciphertext
-    print("C1:  " + C1.hex())
-    print("C2:  " + C2.hex())
+    # print("C1:  " + C1.hex())
+    # print("C2:  " + C2.hex())
 
     # Here, we initialize D2 with C1, so when they are XOR-ed,
     # The result is 0. This is not required for the attack.
@@ -109,16 +109,14 @@ if __name__ == "__main__":
     # 只可在虚线内写代码，否则将不会运行
     # --------------------- START ---------------------
     K = 1
-    # ---------------------- END ----------------------
-
     for i in range(256):
           CC1[16 - K] = i
           status = oracle.decrypt(IV + CC1 + C2)
           if status == "Valid":
               print("Valid: i = 0x{:02x}".format(i))
               print("CC1: " + CC1.hex())
-    ###############################################################
+    # ---------------------- END ----------------------
 
     # Once you get all the 16 bytes of D2, you can easily get P2
     P2 = xor(C1, D2)
-    print("P2:  " + P2.hex())
+    # print("P2:  " + P2.hex())

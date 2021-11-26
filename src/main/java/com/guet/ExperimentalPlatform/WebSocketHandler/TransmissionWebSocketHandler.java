@@ -2,7 +2,6 @@ package com.guet.ExperimentalPlatform.WebSocketHandler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.guet.ExperimentalPlatform.pojo.TransmissionInfo;
 import com.guet.ExperimentalPlatform.Service.FileTransmissionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class TransmissionWebSocketHandler extends TextWebSocketHandler {
 
+    // 用户帐号：用户id
     private static final ConcurrentHashMap<String, Long> onlineUser = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, WebSocketSession> userSession = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, TransmissionInfo> transmissionId = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Long> connectIds = new ConcurrentHashMap<>();
 
     private final FileTransmissionService fileTransmissionService;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -67,7 +67,7 @@ public class TransmissionWebSocketHandler extends TextWebSocketHandler {
                         messageText,
                         userId,
                         onlineUser.get(toUserAccount),
-                        transmissionId
+                        connectIds
                 );
 
                 redisTemplate.opsForValue().setBit("reportUpdate", userId, true);

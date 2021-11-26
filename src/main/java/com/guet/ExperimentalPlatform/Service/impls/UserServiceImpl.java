@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Service
@@ -59,7 +56,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     public String login(LoginForm loginForm) {
         User user = userMapper.selectOne(
-                new QueryWrapper<User>().select("password", "name", "id").eq("account", loginForm.account)
+                new QueryWrapper<User>().select("password", "name", "id", "identity").eq("account", loginForm.account)
         );
 
         if (user == null) {
@@ -74,7 +71,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
             JSONObject loginResult = new JSONObject();
 
-            if (user.getName().equals("teacher")) {
+            System.out.println(user);
+            if (user.getIdentity().equals("teacher")) {
                 loginResult.put("identity", "teacher");
             } else {
                 loginResult.put("identity", "student");
@@ -114,12 +112,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @SuppressWarnings("unchecked")
-    public void generateStudentScoreFile(String[] classes) throws IOException {
+    public void generateStudentScoreFile(String[] classes, String path) throws IOException {
 
         String[] tittles = {"学号", "姓名", "代码测试耗时", "数字信封页面停留时间", "MD5碰撞耗时", "PaddingOracle页面停留时间", "认知理解能力", "操作实践能力", "攻防拓展能力", "总分"};
         Workbook workbook = new HSSFWorkbook();
 
-        for (String classId: classes) {
+        for (String classId : classes) {
             List<User> students = userMapper.selectUserByClassNum(classId);
 
             // 2.根据 workbook 创建 sheet
@@ -151,12 +149,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 report = getReport(student);
 
                 codeTestTime = 0;
-                for (Double time: ((HashMap<String, Double>) report.get("代码考核测试耗时")).values()) {
+                for (Double time : ((HashMap<String, Double>) report.get("代码考核测试耗时")).values()) {
                     codeTestTime += time;
                 }
 
                 md5CollisionTime = 0;
-                for (Double time: ((HashMap<String, Double>) report.get("MD5任务耗时")).values()) {
+                for (Double time : ((HashMap<String, Double>) report.get("MD5任务耗时")).values()) {
                     md5CollisionTime += time;
                 }
 
@@ -177,7 +175,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
         }
 
-        FileOutputStream fos = new FileOutputStream("StudentScoreFiles/学生成绩.xls");
+        FileOutputStream fos = new FileOutputStream(path);
         workbook.write(fos);
         fos.close();
     }
@@ -218,7 +216,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
             Map<String, Object> report = (Map<String, Object>) redisTemplate.opsForValue().get("report:" + userId);
 
-            if(report == null){
+            if (report == null) {
                 newReport = calculateScore(user);
                 redisTemplate.opsForValue().set("report:" + userId, newReport);
                 return newReport;
@@ -277,7 +275,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 运行分数 65 分
         algorithmScore = (algorithmRecordMapper.selectList(
                 new QueryWrapper<AlgorithmRecord>().eq("student_id", userId)
-        ).size() / 12.0) * 65;
+        ).size() / 18.0) * 65;
 
         // rsa 10分钟 10分
         if (studyTime.get("4") < 10) {
@@ -320,7 +318,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 四个任务一个 20 分，共 80 分
         md5CollisionScore = (md5TaskRecords.size() / 4.0) * 80;
 
-
         // 20 分钟 20分
         if (studyTime.get("3") < 20) {
             md5CollisionScore += studyTime.get("3");
@@ -330,25 +327,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // --------------------------------------------------------------------------------------
         double paddingOracleScore;
-        // 完成 auto attack 60 分
+        // 完成 auto attack 40 分
         if (poRunCodesRecordMapper.selectList(
                 new QueryWrapper<PORunCodesRecord>()
                         .eq("student_id", userId)
                         .eq("code_type", "auto_attack")
                         .eq("status", "success")
         ).size() > 0) {
-            paddingOracleScore = 60;
+            paddingOracleScore = 40;
         } else {
             paddingOracleScore = 0;
         }
 
-        // 运行 一次 manual attack 20 分
+        // 运行 5 次 manual attack 40 分
         if (poRunCodesRecordMapper.selectList(
                 new QueryWrapper<PORunCodesRecord>()
                         .eq("student_id", userId)
-                        .eq("code_type", "manual_attack")
+                        .eq("status", "success")
+                        .ne("code_type", "manual_attack")
         ).size() > 0) {
-            paddingOracleScore += 20;
+            paddingOracleScore += 40;
         }
 
         // 10 分钟 20 分

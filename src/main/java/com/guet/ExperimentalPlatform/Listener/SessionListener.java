@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Enumeration;
 
 
-@Component
 @WebListener
 public class SessionListener implements HttpSessionListener {
 
@@ -39,26 +38,27 @@ public class SessionListener implements HttpSessionListener {
 
     @Override
     public void sessionCreated(HttpSessionEvent arg0) {
-        System.out.println("Session: " + arg0.getSession());
+        System.out.println("SessionListener: " + arg0.getSession());
     }
 
     @SneakyThrows
     @Override
     public void sessionDestroyed(HttpSessionEvent arg0) {
+        System.out.println("----------");
 
         try {
 
             HttpSession session = arg0.getSession();
 
-            System.out.println(session);
+            System.out.println("SessionListener: " + session);
 
-            getAttributes(session);
+//            getAttributes(session);
 
             long userId = (long) session.getAttribute("userId");
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
-            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 10);
+            calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 120);
 
             studyRecordService.update(
                     new UpdateWrapper<StudyRecord>()
@@ -72,11 +72,9 @@ public class SessionListener implements HttpSessionListener {
 
             System.out.println("User " + userId + " logout!");
         } catch (Exception e){
-            System.out.println("----------");
-            e.printStackTrace();
-            System.out.println("----------");
-
+            System.out.println("SessionListener: session失效");
         }
+        System.out.println("----------");
 
     }
 

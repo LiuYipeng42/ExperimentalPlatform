@@ -11,9 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -26,16 +24,21 @@ public class PaddingOracleController {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String originalFile =
-            Arrays.stream(FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manual_attack.py").split("\n"))
-                    .filter(x -> !x.contains("#"))
-                    .collect(Collectors.joining()).replace(" ", "");
+    private static final String originalFile;
+
+    private static final String[] manualAttackAnswers;
 
     private static final HashMap<String, String[]> forceContains = new HashMap<>();
 
     static {
+        originalFile = Arrays.stream(FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manual_attack.py").split("\n"))
+                .filter(x -> !x.contains("#"))
+                .collect(Collectors.joining())
+                .replace(" ", "");
         forceContains.put("manual_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
         forceContains.put("auto_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
+        manualAttackAnswers = FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manualAttackAnswer.txt")
+                .split("\n-------------------------------------\n");
     }
 
     @Autowired
@@ -70,7 +73,6 @@ public class PaddingOracleController {
             paddingOracleService.closeEnvironment(
                     String.valueOf(userId)
             );
-
             return true;
         } catch (NullPointerException e) {
             return false;
@@ -96,7 +98,7 @@ public class PaddingOracleController {
 
     @GetMapping("/reset/{fileName}")
     public String resetCodes(HttpServletRequest request,
-                                @PathVariable("fileName") String fileName) {
+                             @PathVariable("fileName") String fileName) {
 
         long userId = (long) request.getSession().getAttribute("userId");
 
@@ -127,12 +129,13 @@ public class PaddingOracleController {
                 forceContains.get("auto_attack"), new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
 
-        if (result.contains("Congraduations! you've got the plain!")) {
-            result += "\n已获取正确密文!";
+        System.out.println(result);
+        if (result.contains("Congradulations! You've got the plaintext.")) {
+            result += "\n已获取正确明文!";
             status = "success";
             redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
         } else {
-            result += "\n获取正确密文失败!";
+            result += "\n获取正确明文失败!";
             status = "fail";
         }
 
@@ -150,8 +153,12 @@ public class PaddingOracleController {
 
     @PostMapping("/manual_attack")
     public String runManualAttack(HttpServletRequest request) throws IOException {
-
-        long userId = (long) request.getSession().getAttribute("userId");
+        long userId;
+        try {
+            userId = (long) request.getSession().getAttribute("userId");
+        } catch (NullPointerException e){
+            userId = 0;
+        }
 
         String codes = FileOperation.savePostText(
                 request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_manual_attack.py"
@@ -159,19 +166,47 @@ public class PaddingOracleController {
 
         String result = RunPython.run(
                 codes, "PaddingOracleFiles/ExperimentDataFile/tempCodes/" + userId + "_manual_attack.py",
-                originalFile, 0.84, forceContains.get("manual_attack"),
+                originalFile, 0.80, forceContains.get("manual_attack"),
                 new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
         );
 
-        paddingOracleService.save(
-                new PORunCodesRecord()
-                        .setStudentId(userId)
-                        .setCodeType("manual_attack")
-                        .setRunningDatetime(new Date())
-        );
+        if (userId != 0) {
 
-        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+            int part = 0;
+            for (int i = 0; i < manualAttackAnswers.length; i++) {
+                if (result.contains(manualAttackAnswers[i])) {
+                    part = i + 1;
+                    break;
+                }
+            }
 
+            redisTemplate.opsForSet().add("po:" + userId, part);
+
+            String parts = Objects.requireNonNull(redisTemplate.opsForSet().members("po:" + 1)).toString();
+
+            if (parts.length() <= 13) {
+                if (part == 0) {
+                    result += "\n获取正确明文失败!";
+                } else {
+                    result += "\n恭喜完成第 " + part + " 步!（共 5 步）";
+                }
+            }
+
+            result += "\n已获取的部分有: " + parts.substring(1, parts.length() - 1);
+
+            if (parts.length() == 15) {
+                redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+                paddingOracleService.save(
+                        new PORunCodesRecord()
+                                .setStudentId(userId)
+                                .setCodeType("manual_attack")
+                                .setStatus("success")
+                                .setRunningDatetime(new Date())
+                );
+            }
+        }else {
+            result += "\n\nsession以失效，请重新登录";
+        }
         return result;
 
     }

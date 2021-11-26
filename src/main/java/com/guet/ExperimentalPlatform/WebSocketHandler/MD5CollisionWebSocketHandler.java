@@ -19,6 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 
@@ -28,10 +29,16 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     private final RedisTemplate<String, Object> redisTemplate;
 
     private final MD5CollisionService md5CollisionService;
+
     private static final HashMap<Long, String> userTask = new HashMap<>();
-    private static final HashMap<Long, List<MD5CommandResult>> userCommands = new HashMap<>();
+    // 记录用户每个任务运行的命令及其结果
+    private static final HashMap<Long, List<MD5CommandResult>> userCommandsRecord = new HashMap<>();
     private static final HashMap<String, String[]> forceContains = new HashMap<>();
+    // 存储实验中每个任务的目标
     private static final HashMap<String, String> taskTargets = new HashMap<>();
+    // 正在运行 md5collegen命令的用户 id
+    // 在对集合中的数据进行修改的时候会将整张表锁住
+    private static final ConcurrentLinkedDeque<Long> runningList = new ConcurrentLinkedDeque<>();
 
     static {
         forceContains.put("./task3.sh", LoadForceContains.load("MD5CollisionFiles/OriginalFiles/task3.sh"));
@@ -43,9 +50,9 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                         "-----------------------------------------------------------");
         String[] tasks = new String[]{"task1", "task2", "task3", "task4"};
 
-        for (String task: tasks) {
-            for (String target: readme) {
-                if (target.contains(task)){
+        for (String task : tasks) {
+            for (String target : readme) {
+                if (target.contains(task)) {
                     taskTargets.put(task, target);
                 }
             }
@@ -71,7 +78,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
         if (userTask.get(userId) != null && command.equals("finish")) {
 
-            String checkResult = MD5FinishTask.judge(userId, userTask.get(userId), userCommands.get(userId));
+            String checkResult = MD5FinishTask.judge(userId, userTask.get(userId), userCommandsRecord.get(userId));
 
             if (checkResult.equals("成功完成任务")) {
                 md5CollisionService.update(
@@ -90,7 +97,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         if (userTask.get(userId) == null) {
             if (command.equals("task1") || command.equals("task2") || command.equals("task3") || command.equals("task4")) {
                 userTask.put(userId, command);
-                userCommands.put(userId, new ArrayList<>());
+                userCommandsRecord.put(userId, new ArrayList<>());
 
                 if (md5CollisionService.getOne(
                         new QueryWrapper<MD5TaskRecord>().eq("student_id", userId).eq("task_name", command)
@@ -143,7 +150,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         long userId = (long) session.getAttributes().get("userId");
 
         userTask.remove(userId);
-        userCommands.remove(userId);
+        userCommandsRecord.remove(userId);
 
         md5CollisionService.closeEnvironment(String.valueOf(userId));
 
@@ -170,12 +177,14 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
             } else if (cdCommands.contains(command.split(" ")[0])) {
                 result = RunCMD.execute(command, filePath);
 
-                if (command.startsWith("echo")){
+                if (command.startsWith("echo") || command.startsWith("cat")) {
                     result = "'" + command + "' 运行成功";
                 }
 
             } else if (command.startsWith("md5collgen ")) {
-                RunCMD.execute("./" + command, filePath, session);
+
+                runMD5Collgen("./" + command, filePath, session, userId);
+
             } else if (command.startsWith("saveFile ")) {
 
                 JSONObject messageJsonObject = JSON.parseObject(command.substring(8));
@@ -218,7 +227,9 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                     if ((command.startsWith("./task3.sh") && codeSimilarity > 0.91) ||
                             (command.startsWith("./task4-1.sh") && codeSimilarity > 0.98) ||
                             (command.startsWith("./task4-2.sh") && codeSimilarity > 0.85)) {
-                        RunCMD.execute(command, filePath, session);
+
+                        runMD5Collgen(command, filePath, session, userId);
+
                     } else {
                         session.sendMessage(new TextMessage("代码修改过多"));
                     }
@@ -239,9 +250,9 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         if (!result.equals(command.split(" ")[0] + ": " + "command not fund\n")) {
             if (checkCommands.contains(command.split(" ")[0]) ||
                     checkCommands.contains(command.replace(" ", ""))) {
-                List<MD5CommandResult> results = userCommands.get(userId);
+                List<MD5CommandResult> results = userCommandsRecord.get(userId);
                 results.add(new MD5CommandResult(command, result));
-                userCommands.put(userId, results);
+                userCommandsRecord.put(userId, results);
             }
         }
 
@@ -253,6 +264,32 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
             System.out.println(result);
         }
         System.out.println("----------------------------------------------------");
+    }
+
+    private void runMD5Collgen(String command, String filePath, WebSocketSession session, long userId) throws IOException {
+        // 有并发安全性的问题
+
+        // 限制只有 5 个用户可以同时运行 md5collgen 命令
+        if (runningList.size() <= 4){
+            // 同一个用户同时只能运行一次
+            if (!runningList.contains(userId)) {
+
+                new Thread(()->{
+                    runningList.add(userId);
+                    try {
+                        RunCMD.execute(command, filePath, session);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    runningList.remove(userId);
+                }).start();
+
+            }else {
+                session.sendMessage(new TextMessage(command + "正在运行"));
+            }
+        }else {
+            session.sendMessage(new TextMessage("此命令需要使用大量CPU资源，由于服务器性能原因，此时不可运行，请稍后再试"));
+        }
     }
 
     private String selectTaskText(long userId) {
@@ -273,7 +310,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
             }
         }
 
-        text.append("\n  (√: 已完成，X: 未完成)");
+        text.append("\n  (√: 已完成，X: 未完成，发送任务名称即可进入对应任务)");
 
         return text.toString();
     }

@@ -14,12 +14,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SpringBootTest
 public class FileTransmissionApplicationTests {
 
-    @Autowired
-    UserService userService;
-
     @Test
-    public void test() throws Exception {
-//        userService.generateStudentScoreFile(new String[]{"1920746", "2112618"});
+    public void test() {
+
+
     }
 
 }

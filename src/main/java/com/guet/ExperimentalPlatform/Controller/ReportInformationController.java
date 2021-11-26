@@ -11,20 +11,11 @@ import com.guet.ExperimentalPlatform.Service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -119,35 +110,10 @@ public class ReportInformationController {
     @PostMapping("/downLoadScores")
     public ResponseEntity<ByteArrayResource> downLoadReports(@RequestBody String[] classes) throws IOException {
 
-        userService.generateStudentScoreFile(classes);
+        userService.generateStudentScoreFile(classes, "StudentScoreFiles/学生成绩.xls");
 
-        File file = new File("StudentScoreFiles/学生成绩.xls");
-
-        HttpHeaders header = new HttpHeaders();
-
-        // Content-disposition 是 MIME 协议的扩展，MIME 协议指示 MIME 用户代理如何显示附加的文件。
-        // 当 浏览器 接收到头时，它会激活文件下载对话框，它的文件名框自动填充了头中指定的文件名。
-        // （请注意，这是设计导致的；无法使用此功能将文档保存到用户的计算机上，而不向用户询问保存位置。）
-        // 服务端向客户端游览器发送文件时，如果是浏览器支持的文件类型，一般会默认使用浏览器打开，比如txt、jpg等，
-        // 如果需要提示用户保存，就要利用 Content-Disposition 进行一下处理，关键在于一定要加上attachment：
-        header.add(
-                HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=" + URLEncoder.encode("学生成绩.xls", StandardCharsets.UTF_8)
-        );
-
-        // 清除缓存
-        header.add("Cache-Control", "no-cache, no-store, must-revalidate");
-        header.add("Pragma", "no-cache");
-        header.add("Expires", "0");
-
-        Path path = Paths.get(file.getAbsolutePath());
-        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-
-        return ResponseEntity.ok()
-                .headers(header)
-                .contentLength(file.length())
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .body(resource);
+        return FileOperation.sentToUser("StudentScoreFiles", "学生成绩.xls");
 
     }
+
 }

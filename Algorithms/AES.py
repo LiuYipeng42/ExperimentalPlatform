@@ -196,10 +196,7 @@ def plaintextToStateHex(plaintext, addPart):
 def flatten(state):
     show = ''
     for i in range(len(state)):
-        if state[i][0] == '0' and len(state[0]) == 2:
-            show = show + state[i][1:]
-        else:
-            show = show + state[i]
+        show = show + state[i]
 
     return show.lower()
 

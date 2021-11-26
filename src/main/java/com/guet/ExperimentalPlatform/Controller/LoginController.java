@@ -42,7 +42,9 @@ public class LoginController {
     @PostMapping("/login")
     public String login(HttpServletRequest request, @RequestBody LoginForm loginForm) throws Exception {
 
-        String secretKey = loginForm.account + loginForm.account.substring(4);
+        String account = loginForm.account;
+
+        String secretKey = account + account.substring(2 * account.length() - 16);
 
         System.out.println(1);
         loginForm.password = AES.Decrypt(loginForm.password, secretKey);
@@ -50,8 +52,6 @@ public class LoginController {
         System.out.println(2);
         String loginResult = userService.login(loginForm);
         System.out.println(3);
-
-        System.out.println(request.getSession());
 
         if (loginResult.equals("没有此用户")){
             return "没有此用户";
@@ -62,13 +62,13 @@ public class LoginController {
             JSONObject result = JSON.parseObject(loginResult);
 
             HttpSession session = request.getSession();
-
+            System.out.println(4);
             session.setAttribute("userId", Long.valueOf(result.getString("userId")));
             session.setAttribute("loginId", Long.valueOf(result.getString("loginRecordId")));
 
             result.remove("loginRecordId");
             result.remove("userId");
-            System.out.println(4);
+            System.out.println(5);
             System.out.println(result);
 
             return AES.Encrypt(result.toString(), secretKey);

@@ -6,11 +6,14 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.guet.ExperimentalPlatform.Entity.Class;
 import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.Service.ClassService;
+import com.guet.ExperimentalPlatform.Utils.FileOperation;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
 import com.guet.ExperimentalPlatform.Service.UserService;
 import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -70,6 +73,11 @@ public class UserController {
         }
 
         return "success";
+    }
+
+    @GetMapping("/template")
+    public ResponseEntity<ByteArrayResource> downLoadTemplate() throws IOException {
+        return FileOperation.sentToUser("UploadFiles", "Template.xlsx");
     }
 
     @GetMapping("/select")
@@ -158,22 +166,40 @@ public class UserController {
             pageNum = count / 10;
         }
 
-        List<User> users = userService.selectClassPage(new ClassPage<User>(page + 1, 10).setClassNum(classNum)).getRecords();
+//        List<User> users = userService.selectClassPage(new ClassPage<User>(page + 1, 10).setClassNum(classNum)).getRecords();
+
+        List<User> users = userService.list();
 
         users = users.stream().filter(
                 x -> !x.getName().equals("teacher")
         ).collect(Collectors.toList());
 
+        List<JSONObject> students = Arrays.stream(userService.getStudentsScore(users)).sorted(
+                (user1, user2) -> {
+                    double score1 = (double) user1.get("score");
+                    double score2 = (double) user2.get("score");
+                    if (score1 - score2 > 0){
+                        return -1;
+                    }else if (score1 - score2 < 0){
+                        return 1;
+                    }else {
+                        return 0;
+                    }
+                }
+        ).collect(Collectors.toList()).subList(page * 10, page * 10 + 10);
+
         JSONObject result = new JSONObject();
         result.put("pageNum", pageNum);
-        result.put("students", userService.getStudentsScore(users));
+        result.put("students", students);
 
         return result;
     }
 
     @GetMapping("/classes")
-    public List<String> getClasses() {
-        return classService.list().stream().map(Class::getClassNum).collect(Collectors.toList());
+    public List<String> getClasses(HttpServletRequest request) {
+        long teacherId = (long) request.getSession().getAttribute("userId");
+        return classService.list(new QueryWrapper<Class>().eq("teacher_id", teacherId))
+                .stream().map(Class::getClassNum).collect(Collectors.toList());
     }
 
 }

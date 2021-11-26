@@ -13,6 +13,7 @@ import com.guet.ExperimentalPlatform.Entity.PORunCodesRecord;
 import com.guet.ExperimentalPlatform.mapper.PORunCodesRecordMapper;
 import com.guet.ExperimentalPlatform.pojo.ContainerInfo;
 import com.guet.ExperimentalPlatform.Service.PaddingOracleService;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -24,9 +25,11 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
         implements PaddingOracleService {
 
     private final DockerClient client;
+    private final RedisTemplate<String, Object> redisTemplate;
     private static final ConcurrentHashMap<String, ContainerInfo> userIdContainer = new ConcurrentHashMap<>();
 
-    public PaddingOracleServiceImpl(){
+    public PaddingOracleServiceImpl(RedisTemplate<String, Object> redisTemplate){
+        this.redisTemplate = redisTemplate;
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost("tcp://0.0.0.0:2375").build();
         client = DockerClientBuilder.getInstance(config).build();
@@ -73,6 +76,9 @@ public class PaddingOracleServiceImpl extends ServiceImpl<PORunCodesRecordMapper
     }
 
     public void closeEnvironment(String userId){
+
+        redisTemplate.opsForSet().remove("po:" + userId, 1, 2, 3, 4, 5);
+
         ContainerInfo containerInfo = userIdContainer.get(userId);
         if (containerInfo != null) {
 
