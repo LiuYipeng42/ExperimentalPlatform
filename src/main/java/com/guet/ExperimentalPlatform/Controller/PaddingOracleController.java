@@ -37,6 +37,7 @@ public class PaddingOracleController {
                 .replace(" ", "");
         forceContains.put("manual_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/manual_attack.py"));
         forceContains.put("auto_attack", LoadForceContains.load("PaddingOracleFiles/OriginalFiles/auto_attack.py"));
+
         manualAttackAnswers = FileOperation.readFile("PaddingOracleFiles/OriginalFiles/manualAttackAnswer.txt")
                 .split("\n-------------------------------------\n");
     }
@@ -116,38 +117,41 @@ public class PaddingOracleController {
     @PostMapping("/auto_attack")
     public String runAutoAttack(HttpServletRequest request) throws IOException {
 
-        long userId = (long) request.getSession().getAttribute("userId");
-        String result;
-        String status;
+        try {
+            long userId = (long) request.getSession().getAttribute("userId");
+            String result;
+            String status;
 
-        String codes = FileOperation.savePostText(
-                request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py"
-        );
+            String codes = FileOperation.savePostText(
+                    request, "PaddingOracleFiles/ExperimentDataFile/" + userId + "_auto_attack.py"
+            );
 
-        result = RunPython.run(
-                codes, "PaddingOracleFiles/ExperimentDataFile/tempCodes/" + userId + "_auto_attack.py",
-                forceContains.get("auto_attack"), new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
-        );
+            result = RunPython.run(
+                    codes, "PaddingOracleFiles/ExperimentDataFile/tempCodes/" + userId + "_auto_attack.py",
+                    forceContains.get("auto_attack"), new String[]{"socket", "binascii:hexlify", "binascii:unhexlify"}
+            );
 
-        System.out.println(result);
-        if (result.contains("Congradulations! You've got the plaintext.")) {
-            result += "\n已获取正确明文!";
-            status = "success";
-            redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
-        } else {
-            result += "\n获取正确明文失败!";
-            status = "fail";
+            if (result.contains("Congradulations! You've got the plaintext.")) {
+                result += "\n已获取正确明文!";
+                status = "success";
+                redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+            } else {
+                result += "\n获取正确明文失败!";
+                status = "fail";
+            }
+
+            paddingOracleService.save(
+                    new PORunCodesRecord()
+                            .setStudentId(userId)
+                            .setCodeType("auto_attack")
+                            .setStatus(status)
+                            .setRunningDatetime(new Date())
+            );
+            return result;
+        }catch (Exception e){
+            e.printStackTrace();
+            return "请重新登陆";
         }
-
-        paddingOracleService.save(
-                new PORunCodesRecord()
-                        .setStudentId(userId)
-                        .setCodeType("auto_attack")
-                        .setStatus(status)
-                        .setRunningDatetime(new Date())
-        );
-
-        return result;
 
     }
 
@@ -205,7 +209,7 @@ public class PaddingOracleController {
                 );
             }
         }else {
-            result += "\n\nsession以失效，请重新登录";
+            result += "\n\n请重新登录";
         }
         return result;
 

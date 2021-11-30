@@ -157,6 +157,8 @@ public class MD5FinishTask {
                         }
                     }
                 }
+            case "task5":
+                System.out.println(userId + " task5");
 
         }
 

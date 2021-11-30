@@ -43,8 +43,8 @@ public class LoadForceContains {
 
             while ((line = br.readLine()) != null) {
 
-                if (line.contains("import"))
-                    continue;
+//                if (line.contains("import"))
+//                    continue;
 
                 part.append(line).append("\n");
 

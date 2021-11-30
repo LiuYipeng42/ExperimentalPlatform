@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 
 @CrossOrigin
 @RestController
@@ -35,7 +37,8 @@ public class PasswordController {
     @PostMapping("/register")
     public String register(@RequestBody LoginForm registerForm) throws Exception {
 
-        String secretKey = registerForm.account + registerForm.account.substring(4);
+        String account = registerForm.account;
+        String secretKey = account + account.substring(2 * account.length() - 16);
 
         registerForm.password = AES.Decrypt(registerForm.password, secretKey);
 
@@ -53,7 +56,7 @@ public class PasswordController {
             classService.addClassStudent(user.getId(), otherStudentsClass);
 
             status = "success";
-        } catch (DuplicateKeyException e){
+        } catch (DuplicateKeyException e) {
             e.printStackTrace();
             status = "此账号已存在";
         }
@@ -67,21 +70,39 @@ public class PasswordController {
     }
 
     @PostMapping("/changePasswd")
-    public String changePassword(@RequestBody LoginForm newPasswd) throws Exception {
+    public String changePassword(HttpServletRequest request, @RequestBody LoginForm newPasswd) throws Exception {
 
-        String secretKey = newPasswd.account + newPasswd.account.substring(4);
-
-        newPasswd.password = AES.Decrypt(newPasswd.password, secretKey);
-
-        String status;
+        long userId;
 
         try {
-            userService.update(
-                    new UpdateWrapper<User>().set("password", newPasswd.password).eq("account", newPasswd.account)
-            );
-            status = "success";
-        }catch (Exception ignored){
-            status = "修改失败";
+            userId = (long) request.getSession().getAttribute("userId");
+        } catch (NullPointerException e) {
+            userId = 0;
+        }
+
+        String account = newPasswd.account;
+
+        User user = userService.getOne(
+                new QueryWrapper<User>().select("password", "name", "id", "identity").eq("account", account)
+        );
+
+        String status;
+        String secretKey = account + account.substring(2 * account.length() - 16);
+
+        newPasswd.oldPassword = AES.Decrypt(newPasswd.oldPassword, secretKey);
+        newPasswd.password = AES.Decrypt(newPasswd.password, secretKey);
+
+        if (newPasswd.oldPassword != null && (newPasswd.oldPassword.equals(user.getPassword()) || userId == user.getId())) {
+            try {
+                userService.update(
+                        new UpdateWrapper<User>().set("password", newPasswd.password).eq("account", newPasswd.account)
+                );
+                status = "success";
+            } catch (Exception ignored) {
+                status = "修改失败";
+            }
+        } else {
+            status = "原密码错误";
         }
 
         JSONObject result = new JSONObject();

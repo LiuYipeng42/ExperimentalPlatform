@@ -35,7 +35,7 @@ public class TimerController {
         pageType.put("aesProcedure", "7");
         pageType.put("aesAvalanche", "8");
         pageType.put("codeTest", "9");
-        pageType.put("others", "");
+        pageType.put("others", "10");
     }
 
     @Autowired

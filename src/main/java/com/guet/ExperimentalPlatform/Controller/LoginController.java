@@ -26,7 +26,8 @@ public class LoginController {
     @PostMapping("/checkTeacher")
     public String checkTeacher(@RequestBody LoginForm loginForm) throws Exception {
 
-        String secretKey = loginForm.account + loginForm.account.substring(4);
+        String account = loginForm.account;
+        String secretKey = account + account.substring(2 * account.length() - 16);
 
         loginForm.password = AES.Decrypt(loginForm.password, secretKey);
 
@@ -43,7 +44,6 @@ public class LoginController {
     public String login(HttpServletRequest request, @RequestBody LoginForm loginForm) throws Exception {
 
         String account = loginForm.account;
-
         String secretKey = account + account.substring(2 * account.length() - 16);
 
         System.out.println(1);

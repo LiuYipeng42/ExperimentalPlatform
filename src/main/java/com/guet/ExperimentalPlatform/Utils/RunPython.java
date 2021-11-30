@@ -108,16 +108,16 @@ public class RunPython {
                                      String[] forceContains,
                                      String[] libs) {
 
+        if (!limitImport(libs, pythonFile)) {
+            return "不可import其他库";
+        }
+
         if (forceContains != null) {
             for (String s : forceContains) {
                 if (!pythonFile.contains(s)) {
                     return "不可修改原有代码";
                 }
             }
-        }
-
-        if (!limitImport(libs, pythonFile)) {
-            return "不可import其他库";
         }
 
         if (pythonFile.length() > 4000) {
@@ -178,7 +178,7 @@ public class RunPython {
     }
 
     public static String run(String codes, String filePath, String originalFile,
-                                     double codeSimilarity, String[] forceContains, String[] libs) throws IOException {
+                             double codeSimilarity, String[] forceContains, String[] libs) throws IOException {
         String checkStatus;
         String result;
 

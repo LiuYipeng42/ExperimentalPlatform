@@ -19,7 +19,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 
@@ -36,9 +35,6 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     private static final HashMap<String, String[]> forceContains = new HashMap<>();
     // 存储实验中每个任务的目标
     private static final HashMap<String, String> taskTargets = new HashMap<>();
-    // 正在运行 md5collegen命令的用户 id
-    // 在对集合中的数据进行修改的时候会将整张表锁住
-    private static final ConcurrentLinkedDeque<Long> runningList = new ConcurrentLinkedDeque<>();
 
     static {
         forceContains.put("./task3.sh", LoadForceContains.load("MD5CollisionFiles/OriginalFiles/task3.sh"));
@@ -48,7 +44,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         String[] readme = FileOperation.readFile("MD5CollisionFiles/OriginalFiles/readme")
                 .split("-------------------------------------------------------" +
                         "-----------------------------------------------------------");
-        String[] tasks = new String[]{"task1", "task2", "task3", "task4"};
+        String[] tasks = new String[]{"task1", "task2", "task3", "task4", "task5"};
 
         for (String task : tasks) {
             for (String target : readme) {
@@ -95,7 +91,8 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         }
 
         if (userTask.get(userId) == null) {
-            if (command.equals("task1") || command.equals("task2") || command.equals("task3") || command.equals("task4")) {
+            if (command.equals("task1") || command.equals("task2")
+                    || command.equals("task3") || command.equals("task4") || command.equals("task5")) {
                 userTask.put(userId, command);
                 userCommandsRecord.put(userId, new ArrayList<>());
 
@@ -149,6 +146,8 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
         long userId = (long) session.getAttributes().get("userId");
 
+        redisTemplate.opsForValue().setBit("runningMD5", userId, false);
+
         userTask.remove(userId);
         userCommandsRecord.remove(userId);
 
@@ -180,6 +179,9 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                 if (command.startsWith("echo") || command.startsWith("cat")) {
                     result = "'" + command + "' 运行成功";
                 }
+            } else if (command.startsWith("fastcoll ")) {
+
+                result = RunCMD.execute("./" + command, filePath);
 
             } else if (command.startsWith("md5collgen ")) {
 
@@ -261,7 +263,11 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         if (result.length() > 1024) {
             System.out.println(result.substring(0, 1024));
         } else {
-            System.out.println(result);
+            if (result.length() > 200){
+                System.out.println(result.substring(0, 200));
+            }else {
+                System.out.println(result);
+            }
         }
         System.out.println("----------------------------------------------------");
     }
@@ -270,18 +276,21 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         // 有并发安全性的问题
 
         // 限制只有 5 个用户可以同时运行 md5collgen 命令
-        if (runningList.size() <= 4){
+        if (RedisOps.bitCount(redisTemplate, "runningMD5").longValue() <= 2){
             // 同一个用户同时只能运行一次
-            if (!runningList.contains(userId)) {
+            if (!Boolean.TRUE.equals(redisTemplate.opsForValue().getBit("runningMD5", userId))) {
 
                 new Thread(()->{
-                    runningList.add(userId);
+                    System.out.println(userId + " running " + RedisOps.bitCount(redisTemplate, "runningMD5"));
+                    redisTemplate.opsForValue().setBit("runningMD5", userId, true);
                     try {
                         RunCMD.execute(command, filePath, session);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    runningList.remove(userId);
+                    redisTemplate.opsForValue().setBit("runningMD5", userId, false);
+                    System.out.println(userId + " stop " + RedisOps.bitCount(redisTemplate, "runningMD5"));
+
                 }).start();
 
             }else {
@@ -302,7 +311,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
         StringBuilder text = new StringBuilder("请选择一个任务：");
 
-        for (String task : new String[]{"task1", "task2", "task3", "task4"}) {
+        for (String task : new String[]{"task1", "task2", "task3", "task4", "task5"}) {
             if (finishedTasks.contains(task)) {
                 text.append("\n    ").append(task).append(" √");
             } else {

@@ -263,10 +263,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                         studyTime.get("7") + (s.getEndTime().getTime() - s.getStartTime().getTime()) / 60000.0
                 );
             } else {
+
+                if (String.valueOf(s.getExperimentType()).equals("10")){
+                    continue;
+                }
+
                 studyTime.put(
                         String.valueOf(s.getExperimentType()),
                         studyTime.get(String.valueOf(s.getExperimentType())) + (s.getEndTime().getTime() - s.getStartTime().getTime()) / 60000.0
                 );
+
+
             }
 
         }
@@ -303,7 +310,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         double md5CollisionScore;
         List<MD5TaskRecord> md5TaskRecords = md5TaskRecordMapper.selectList(
-                new QueryWrapper<MD5TaskRecord>().eq("student_id", userId).eq("status", "finished")
+                new QueryWrapper<MD5TaskRecord>()
+                        .eq("student_id", userId)
+                        .eq("status", "finished")
+                        .ne("task_name", "task5")  // task5暂不计入分数
         );
 
         HashMap<String, Double> md5TaskTime = new HashMap<>();
