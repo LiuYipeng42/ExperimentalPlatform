@@ -157,9 +157,51 @@ public class MD5FinishTask {
                         }
                     }
                 }
+                break;
             case "task5":
-                System.out.println(userId + " task5");
 
+                files = new String[]{"out1.py", "out2.py"};
+                for (String file : files) {
+                    if (!new File(filePath + "/" + file).exists()) {
+                        return "缺少 " + file + " 文件";
+                    }
+                }
+
+                if (userCommands.contains("viout1.py") || userCommands.contains("viout2.py")){
+                    new File(filePath + "/out1.py").delete();
+                    new File(filePath + "/out2.py").delete();
+                    return "不可编辑 out1.py 与 out2.py，请退出此实验重做";
+                }
+
+                if (!userCommands.contains("hexout1.py")) {
+                    return "没有以 16 进制的形式查看 out1.py 文件";
+                }
+
+                if (!userCommands.contains("hexout2.py")) {
+                    return "没有以 16 进制的形式查看 out2.py 文件";
+                }
+
+                if (!userCommands.contains("md5sumout1.pyout2.py") &&
+                        !userCommands.contains("md5sumout2.pyout1.py") &&
+                        !(userCommands.contains("md5sumout1.py") && userCommands.contains("md5sumout2.py"))) {
+                    return "没有进行 md5sum 命令检验";
+                }
+
+                for (MD5CommandResult result : commandAndResult) {
+                    if (result.getCommand().equals("python3out1.py")) {
+                        if (!result.getResult().contains("HelloWorld\nHelloWorld\nHelloWorld")) {
+                            return "out1.py 运行失败";
+                        }
+                    }
+
+                    if (result.getCommand().equals("python3out2.py")) {
+                        if (!result.getResult().contains("GoodBye\nGoodBye\nGoodBye")) {
+                            return "out2.py 运行失败";
+                        }
+                    }
+                }
+
+                break;
         }
 
         return "成功完成任务";

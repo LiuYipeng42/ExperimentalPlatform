@@ -43,7 +43,7 @@ public class FileOperation {
                 text.append(line).append("\n");
             }
         } catch (IOException e) {
-            return "";
+            return "打开文件失败";
         }
 
         return text.toString();

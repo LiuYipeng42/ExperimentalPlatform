@@ -166,7 +166,6 @@ public class RunPython {
     }
 
     private static String getResult(String filePath) throws IOException {
-        System.out.println("python3 " + filePath);
 
         String result = RunCMD.execute("python3 " + filePath, 1);
 
@@ -204,6 +203,21 @@ public class RunPython {
         checkStatus = checkCodes(codes, forceContains, libs);
         codes = addTracebackCode(codes);
         FileOperation.writeFile(filePath, codes);
+
+        if (checkStatus.equals("success")) {
+            result = getResult(filePath);
+        } else {
+            result = checkStatus;
+        }
+
+        return result;
+    }
+
+    public static String run(String filePath, String[] libs) throws IOException {
+        String checkStatus;
+        String result;
+
+        checkStatus = checkCodes(FileOperation.readFile(filePath), null, libs);
 
         if (checkStatus.equals("success")) {
             result = getResult(filePath);

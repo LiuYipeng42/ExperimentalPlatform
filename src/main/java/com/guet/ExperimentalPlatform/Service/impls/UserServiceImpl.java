@@ -264,7 +264,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 );
             } else {
 
-                if (String.valueOf(s.getExperimentType()).equals("10")){
+                if (String.valueOf(s.getExperimentType()).equals("10")) {
                     continue;
                 }
 

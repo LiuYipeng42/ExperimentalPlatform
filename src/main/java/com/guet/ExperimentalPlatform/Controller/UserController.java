@@ -166,6 +166,8 @@ public class UserController {
             pageNum = count / 10;
         }
 
+        pageNum += 1;
+
 //        List<User> users = userService.selectClassPage(new ClassPage<User>(page + 1, 10).setClassNum(classNum)).getRecords();
 
         List<User> users = userService.list();

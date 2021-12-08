@@ -156,6 +156,30 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void parseAndRunCommand(WebSocketSession session, String command, long userId) throws IOException {
+
+        if (command.split(" ").length > 2){
+            session.sendMessage(new TextMessage("不可运行"));
+            return;
+        }
+
+        if(!command.contains("sh") && !command.contains("md5collgen ") && !command.contains("fastcoll ")
+                && (command.contains("/") || command.contains("-"))){
+            session.sendMessage(new TextMessage("不可运行"));
+            return;
+        }
+
+        if (command.contains("rm") || command.contains("&") || command.contains("|") || command.contains(">") || command.contains("<")) {
+            session.sendMessage(new TextMessage("不可运行"));
+            return;
+        }
+
+        if (command.startsWith("./") && command.contains("sh")) {
+            if (!command.equals("./task3.sh") && !command.equals("./task4-1.sh") && !command.equals("./task4-2.sh")) {
+                session.sendMessage(new TextMessage("不可运行 task3.sh, task4-1.sh 和 task4-2.sh 以外的sh文件"));
+                return;
+            }
+        }
+
         String filePath = "MD5CollisionFiles/ExperimentDataFile/" + userId;
 
         String result = "";
@@ -171,7 +195,15 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                 result = RunCMD.execute("hexdump -Cv " + filePath + "/" + command.substring(4));
             } else if (command.startsWith("vi ")) {
 
-                result = FileOperation.readFile(filePath + "/" + command.substring(3));
+                String fileName = command.substring(3);
+                File file = new File(filePath + "/" + fileName);
+
+                if(file.exists()) {
+                    result = FileOperation.readFile(filePath + "/" + fileName);
+                }else {
+                    FileOperation.writeFile(filePath + "/" + fileName, "\n");
+                    result = "\n";
+                }
 
             } else if (cdCommands.contains(command.split(" ")[0])) {
                 result = RunCMD.execute(command, filePath);
@@ -187,12 +219,31 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
                 runMD5Collgen("./" + command, filePath, session, userId);
 
-            } else if (command.startsWith("saveFile ")) {
+            } else if (command.startsWith("python3 ")) {
+
+                result = RunPython.run(filePath + "/" + command.split(" ")[1], new String[]{});
+
+            }  else if (command.startsWith("saveFile ")) {
+
+                String data;
 
                 JSONObject messageJsonObject = JSON.parseObject(command.substring(8));
-                System.out.println(filePath + "/" + messageJsonObject.getString("fileName"));
-                FileOperation.writeFile(filePath + "/" + messageJsonObject.getString("fileName"),
-                        messageJsonObject.getString("data"));
+                data = messageJsonObject.getString("data");
+
+                if (data.contains("rm ")) {
+                    return;
+                }
+
+                String fileName = messageJsonObject.getString("fileName");
+
+                if (fileName.equals("out1.py") || fileName.equals("out2.py")){
+                    session.sendMessage(new TextMessage("不可创建 out1.py 和 out2.py 文件"));
+                }
+
+                System.out.println(fileName);
+                FileOperation.writeFile(
+                        filePath + "/" + messageJsonObject.getString("fileName"), data
+                );
 
             } else {
                 result = command.split(" ")[0] + ": " + "command not fund\n";
@@ -247,11 +298,13 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                 Arrays.asList("sha256sum", "md5sum", "xxd", "md5collgen",
                         "./a1.out", "./a2.out", "hextask3", "vitask3.sh", "./task3.sh",
                         "hextask4", "vitask4-1.sh", "./task4-1.sh",
-                        "vitask4-2.sh", "./task4-2.sh");
+                        "vitask4-2.sh", "./task4-2.sh",
+                        "python3out1.py", "python3out2.py", "hexout1.py", "hexout2.py");
 
         if (!result.equals(command.split(" ")[0] + ": " + "command not fund\n")) {
             if (checkCommands.contains(command.split(" ")[0]) ||
                     checkCommands.contains(command.replace(" ", ""))) {
+                System.out.println();
                 List<MD5CommandResult> results = userCommandsRecord.get(userId);
                 results.add(new MD5CommandResult(command, result));
                 userCommandsRecord.put(userId, results);
@@ -263,9 +316,9 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         if (result.length() > 1024) {
             System.out.println(result.substring(0, 1024));
         } else {
-            if (result.length() > 200){
+            if (result.length() > 200) {
                 System.out.println(result.substring(0, 200));
-            }else {
+            } else {
                 System.out.println(result);
             }
         }
@@ -276,11 +329,11 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         // 有并发安全性的问题
 
         // 限制只有 5 个用户可以同时运行 md5collgen 命令
-        if (RedisOps.bitCount(redisTemplate, "runningMD5").longValue() <= 2){
+        if (RedisOps.bitCount(redisTemplate, "runningMD5").longValue() <= 2) {
             // 同一个用户同时只能运行一次
             if (!Boolean.TRUE.equals(redisTemplate.opsForValue().getBit("runningMD5", userId))) {
 
-                new Thread(()->{
+                new Thread(() -> {
                     System.out.println(userId + " running " + RedisOps.bitCount(redisTemplate, "runningMD5"));
                     redisTemplate.opsForValue().setBit("runningMD5", userId, true);
                     try {
@@ -293,10 +346,10 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
                 }).start();
 
-            }else {
+            } else {
                 session.sendMessage(new TextMessage(command + "正在运行"));
             }
-        }else {
+        } else {
             session.sendMessage(new TextMessage("此命令需要使用大量CPU资源，由于服务器性能原因，此时不可运行，请稍后再试"));
         }
     }
