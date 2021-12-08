@@ -9,7 +9,6 @@ import com.guet.ExperimentalPlatform.Service.ClassService;
 import com.guet.ExperimentalPlatform.Utils.FileOperation;
 import com.guet.ExperimentalPlatform.Utils.RunCMD;
 import com.guet.ExperimentalPlatform.Service.UserService;
-import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.dao.DuplicateKeyException;
@@ -44,6 +43,8 @@ public class UserController {
     public String uploadStudents(HttpServletRequest request, @RequestParam("classId") String classId)
             throws IllegalStateException, IOException {
 
+        long userId = (long) request.getSession().getAttribute("userId");
+
         // 将当前上下文初始化给  CommonsMultipartResolver （多部分解析器）
         CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver(request.getSession().getServletContext());
         // 检查 form中是否有 Content-Type = "multipart/form-data"
@@ -58,13 +59,15 @@ public class UserController {
                 MultipartFile file = multiRequest.getFile(iter.next());
                 if (file != null) {
 
-                    String path = "/root/ExperimentalPlatform/springboot/UploadFiles/" + file.getOriginalFilename();
+                    String path = "/root/ExperimentalPlatform/springboot/UploadFiles/students/" + file.getOriginalFilename();
                     //上传
                     File uploadFile = new File(path);
                     file.transferTo(uploadFile);
                     System.out.println(classId);
                     if (uploadFile.exists()) {
-                        String result = RunCMD.execute("python3 UploadFiles/importStudents.py " + path + " " + classId);
+                        String result = RunCMD.execute(
+                                "python3 UploadFiles/importStudents.py " + path + " " + classId + " " + userId
+                        );
                         System.out.println(result);
                     }
 
@@ -84,9 +87,9 @@ public class UserController {
     public JSONObject[] getStudent(@RequestParam("type") String type, @RequestParam("condition") String condition) {
         List<User> users;
 
-        if (type.equals("class_id")){
+        if (type.equals("class_id")) {
             users = userService.selectUserByClassNum(condition);
-        }else {
+        } else {
             users = userService.list(new QueryWrapper<User>().eq(type, condition));
         }
 
@@ -154,7 +157,9 @@ public class UserController {
     }
 
     @GetMapping("/listStudents")
-    public JSONObject listStudentsPage(@RequestParam("classId") String classNum, @RequestParam("page") int page) {
+    public JSONObject listStudentsPage(HttpServletRequest request, @RequestParam("classId") String classNum, @RequestParam("page") int page) {
+
+        long userId = (long) request.getSession().getAttribute("userId");
 
         int count = userService.countStudentsByClassNum(classNum);
 
@@ -168,23 +173,22 @@ public class UserController {
 
         pageNum += 1;
 
-//        List<User> users = userService.selectClassPage(new ClassPage<User>(page + 1, 10).setClassNum(classNum)).getRecords();
-
-        List<User> users = userService.list();
+        List<User> users = userService.selectUserByTeacher(String.valueOf(userId));
 
         users = users.stream().filter(
                 x -> !x.getName().equals("teacher")
         ).collect(Collectors.toList());
 
-        List<JSONObject> students = Arrays.stream(userService.getStudentsScore(users)).sorted(
+        List<JSONObject> students = Arrays.stream(
+                userService.getStudentsScore(users)).sorted(
                 (user1, user2) -> {
                     double score1 = (double) user1.get("score");
                     double score2 = (double) user2.get("score");
-                    if (score1 - score2 > 0){
+                    if (score1 - score2 > 0) {
                         return -1;
-                    }else if (score1 - score2 < 0){
+                    } else if (score1 - score2 < 0) {
                         return 1;
-                    }else {
+                    } else {
                         return 0;
                     }
                 }

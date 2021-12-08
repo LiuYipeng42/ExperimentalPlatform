@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.guet.ExperimentalPlatform.Entity.*;
 import com.guet.ExperimentalPlatform.mapper.*;
-import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 
 import com.guet.ExperimentalPlatform.Service.UserService;
@@ -97,13 +96,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public ClassPage<User> selectClassPage(ClassPage<User> classPage) {
-        return userMapper.selectClassPage(classPage);
+    public List<User> selectUserByClassNum(String classNum) {
+        return userMapper.selectUserByClassNum(classNum);
     }
 
     @Override
-    public List<User> selectUserByClassNum(String classNum) {
-        return userMapper.selectUserByClassNum(classNum);
+    public List<User> selectUserByTeacher(String teacherId){
+        return userMapper.selectUserByTeacher(teacherId);
     }
 
     @Override

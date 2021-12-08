@@ -9,6 +9,7 @@ args = sys.argv
 
 fileName = args[1]
 classNum = args[2]
+teacherId = args[3]
 
 db = pymysql.connect(host='localhost', user='root', password='121522734a', port=3306, db='ExperimentalPlatform')
 cursor = db.cursor()
@@ -42,8 +43,8 @@ for row in range(df.shape[0]):
 
         try:
             cursor.execute(
-                "insert into class (classNum) values (%s)",
-                (classNum)
+                "insert into class (class_num, teacher_id) values (%s, %s)",
+                (classNum, teacherId)
             )
             classId = cursor.lastrowid
         except IntegrityError:

@@ -15,18 +15,18 @@ public interface UserMapper extends BaseMapper<User> {
     @Select(
             "select * from `user` where id in " +
                     "(select student_id from student_class where class_id in " +
-                    "(select id from class where class_num=#{pg.classNum})" +
-                    ")"
-    )
-    ClassPage<User> selectClassPage(@Param("pg") ClassPage<User> classPage);
-
-    @Select(
-            "select * from `user` where id in " +
-                    "(select student_id from student_class where class_id in " +
                     "(select id from class where class_num=#{classNum})" +
                     ")"
     )
     List<User> selectUserByClassNum(@Param("classNum") String classNum);
+
+    @Select(
+            "select * from `user` where id in " +
+                    "(select student_id from student_class where class_id in " +
+                    "(select id from class where teacher_id=#{teacherId})" +
+                    ")"
+    )
+    List<User> selectUserByTeacher(@Param("teacherId") String teacherId);
 
     @Select("select * from user where identity!='teacher'")
     List<User> getAllStudents();

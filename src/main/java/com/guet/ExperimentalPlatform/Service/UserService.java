@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
+import org.apache.ibatis.annotations.Param;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,9 +26,9 @@ public interface UserService extends IService<User> {
 
     void deleteStudents(String column, String condition);
 
-    ClassPage<User> selectClassPage(ClassPage<User> classPage);
-
     List<User> selectUserByClassNum(String classNum);
+
+    List<User> selectUserByTeacher(String teacherId);
 
     Integer countStudentsByClassNum(String classNum);
 }

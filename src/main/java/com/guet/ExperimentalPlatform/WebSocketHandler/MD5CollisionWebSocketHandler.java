@@ -157,26 +157,28 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
     private void parseAndRunCommand(WebSocketSession session, String command, long userId) throws IOException {
 
-        if (command.split(" ").length > 2){
-            session.sendMessage(new TextMessage("不可运行"));
-            return;
-        }
-
-        if(!command.contains("sh") && !command.contains("md5collgen ") && !command.contains("fastcoll ")
-                && (command.contains("/") || command.contains("-"))){
-            session.sendMessage(new TextMessage("不可运行"));
-            return;
-        }
-
-        if (command.contains("rm") || command.contains("&") || command.contains("|") || command.contains(">") || command.contains("<")) {
-            session.sendMessage(new TextMessage("不可运行"));
-            return;
-        }
-
-        if (command.startsWith("./") && command.contains("sh")) {
-            if (!command.equals("./task3.sh") && !command.equals("./task4-1.sh") && !command.equals("./task4-2.sh")) {
-                session.sendMessage(new TextMessage("不可运行 task3.sh, task4-1.sh 和 task4-2.sh 以外的sh文件"));
+        if (!command.startsWith("saveFile") && !command.startsWith("md5collgen") && !command.startsWith("fastcoll")) {
+            if (command.split(" ").length > 2) {
+                session.sendMessage(new TextMessage("不可运行"));
                 return;
+            }
+
+            if (!command.contains("sh") && !command.contains("fastcoll ")
+                    && (command.contains("/") || command.contains("-"))) {
+                session.sendMessage(new TextMessage("不可运行"));
+                return;
+            }
+
+            if (command.contains("rm ") || command.contains("&") || command.contains("|") || command.contains(">") || command.contains("<")) {
+                session.sendMessage(new TextMessage("不可运行"));
+                return;
+            }
+
+            if (command.startsWith("./") && command.contains("sh")) {
+                if (!command.equals("./task3.sh") && !command.equals("./task4-1.sh") && !command.equals("./task4-2.sh")) {
+                    session.sendMessage(new TextMessage("不可运行 task3.sh, task4-1.sh 和 task4-2.sh 以外的sh文件"));
+                    return;
+                }
             }
         }
 
@@ -213,7 +215,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                 }
             } else if (command.startsWith("fastcoll ")) {
 
-                result = RunCMD.execute("./" + command, filePath);
+                runMD5Collgen("./" + command, filePath, session, userId);
 
             } else if (command.startsWith("md5collgen ")) {
 
@@ -329,7 +331,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
         // 有并发安全性的问题
 
         // 限制只有 5 个用户可以同时运行 md5collgen 命令
-        if (RedisOps.bitCount(redisTemplate, "runningMD5").longValue() <= 2) {
+        if (RedisOps.bitCount(redisTemplate, "runningMD5").longValue() <= 5) {
             // 同一个用户同时只能运行一次
             if (!Boolean.TRUE.equals(redisTemplate.opsForValue().getBit("runningMD5", userId))) {
 
