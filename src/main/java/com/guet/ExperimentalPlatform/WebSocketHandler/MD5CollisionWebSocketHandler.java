@@ -158,10 +158,6 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     private void parseAndRunCommand(WebSocketSession session, String command, long userId) throws IOException {
 
         if (!command.startsWith("saveFile") && !command.startsWith("md5collgen") && !command.startsWith("fastcoll")) {
-            if (command.split(" ").length > 2) {
-                session.sendMessage(new TextMessage("不可运行"));
-                return;
-            }
 
             if (!command.contains("sh") && !command.contains("fastcoll ")
                     && (command.contains("/") || command.contains("-"))) {
@@ -169,7 +165,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
                 return;
             }
 
-            if (command.contains("rm ") || command.contains("&") || command.contains("|") || command.contains(">") || command.contains("<")) {
+            if (command.contains("rm ") || command.contains("&") || command.contains("|") || command.contains("<")) {
                 session.sendMessage(new TextMessage("不可运行"));
                 return;
             }
@@ -223,7 +219,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
 
             } else if (command.startsWith("python3 ")) {
 
-                result = RunPython.run(filePath + "/" + command.split(" ")[1], new String[]{});
+                result = RunPython.run(filePath + "/" + command.split(" ")[1], new String[]{"sys"});
 
             }  else if (command.startsWith("saveFile ")) {
 
