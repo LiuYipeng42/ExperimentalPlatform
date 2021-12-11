@@ -156,7 +156,7 @@ public class MD5CollisionWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void parseAndRunCommand(WebSocketSession session, String command, long userId) throws IOException {
-
+        
         if (!command.startsWith("saveFile") && !command.startsWith("md5collgen") && !command.startsWith("fastcoll")) {
 
             if (!command.contains("sh") && !command.contains("fastcoll ")
