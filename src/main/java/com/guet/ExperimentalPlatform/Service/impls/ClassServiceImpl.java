@@ -7,6 +7,8 @@ import com.guet.ExperimentalPlatform.mapper.ClassMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class>
         implements ClassService {
@@ -24,7 +26,7 @@ public class ClassServiceImpl extends ServiceImpl<ClassMapper, Class>
     }
 
     @Override
-    public void removeClassStudent(long studentId) {
-        classMapper.removeClassStudent(studentId);
+    public List<Long> selectTeacherIdByClassNum(String classNum) {
+        return classMapper.selectTeacherIdByClassNum(classNum);
     }
 }

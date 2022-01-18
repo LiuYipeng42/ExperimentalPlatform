@@ -7,6 +7,7 @@ import com.guet.ExperimentalPlatform.Entity.User;
 import com.guet.ExperimentalPlatform.pojo.ClassPage;
 import com.guet.ExperimentalPlatform.pojo.LoginForm;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,11 +25,16 @@ public interface UserService extends IService<User> {
 
     void generateStudentScoreFile(String[] classes, String path) throws IOException;
 
-    void deleteStudents(String column, String condition);
+    void deleteStudents(long studentId);
 
     List<User> selectUserByClassNum(String classNum);
 
     List<User> selectUserByTeacher(String teacherId);
 
     Integer countStudentsByClassNum(String classNum);
+
+    List<Long> selectTeacherIdByAccount(String account);
+
+    List<Long> selectTeacherIdById(long id);
+
 }

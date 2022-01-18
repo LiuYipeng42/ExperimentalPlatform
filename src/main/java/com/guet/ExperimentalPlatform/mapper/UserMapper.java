@@ -28,6 +28,20 @@ public interface UserMapper extends BaseMapper<User> {
     )
     List<User> selectUserByTeacher(@Param("teacherId") String teacherId);
 
+    @Select(
+            "select teacher_id from class where id in (" +
+                    "select class_id from student_class where student_id in " +
+                    "(select id from user where account=#{account})" +
+                    ")"
+    )
+    List<Long> selectTeacherIdByAccount(@Param("account") String account);
+
+    @Select(
+            "select teacher_id from class where id in (" +
+                    "select class_id from student_class where student_id = #{id})"
+    )
+    List<Long> selectTeacherIdById(@Param("id") long id);
+
     @Select("select * from user where identity!='teacher'")
     List<User> getAllStudents();
 
@@ -39,5 +53,8 @@ public interface UserMapper extends BaseMapper<User> {
     )
     Integer countStudentsByClassNum(@Param("classNum") String classNum);
 
-
+    @Select(
+            "SELECT class_num FROM class WHERE id in (SELECT class_id FROM `student_class` WHERE student_id = #{id});"
+    )
+    List<String> getClassNum(@Param("id") long id);
 }

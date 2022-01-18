@@ -27,6 +27,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final UserMapper userMapper;
+    private final ClassMapper classMapper;
     private final LoginRecordMapper loginRecordMapper;
     private final StudyRecordMapper studyRecordMapper;
     private final AlgorithmRecordMapper algorithmRecordMapper;
@@ -37,13 +38,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Autowired
     public UserServiceImpl(RedisTemplate<String, Object> redisTemplate,
-                           UserMapper userMapper, LoginRecordMapper loginRecordMapper,
+                           UserMapper userMapper, ClassMapper classMapper, LoginRecordMapper loginRecordMapper,
                            StudyRecordMapper studyRecordMapper, AlgorithmRecordMapper algorithmRecordMapper,
                            MD5TaskRecordMapper md5TaskRecordMapper, PORunCodesRecordMapper poRunCodesRecordMapper,
                            CodeTestRecordMapper codeTestRecordMapper, FTEncryptionInfoMapper ftEncryptionInfoMapper) {
         this.redisTemplate = redisTemplate;
 
         this.userMapper = userMapper;
+        this.classMapper = classMapper;
         this.loginRecordMapper = loginRecordMapper;
         this.studyRecordMapper = studyRecordMapper;
         this.algorithmRecordMapper = algorithmRecordMapper;
@@ -73,6 +75,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             System.out.println(user);
             if (user.getIdentity().equals("teacher")) {
                 loginResult.put("identity", "teacher");
+            } else if (user.getIdentity().equals("admin")) {
+                loginResult.put("identity", "admin");
             } else {
                 loginResult.put("identity", "student");
             }
@@ -89,10 +93,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public void deleteStudents(String column, String condition) {
+    public void deleteStudents(long studentId) {
         userMapper.delete(
-                new QueryWrapper<User>().eq(column, condition)
+                new QueryWrapper<User>().eq("id", studentId)
         );
+
+        algorithmRecordMapper.delete(
+                new QueryWrapper<AlgorithmRecord>().eq("student_id", studentId)
+        );
+        codeTestRecordMapper.delete(
+                new QueryWrapper<CodeTestRecord>().eq("student_id", studentId)
+        );
+        loginRecordMapper.delete(
+                new QueryWrapper<LoginRecord>().eq("student_id", studentId)
+        );
+        md5TaskRecordMapper.delete(
+                new QueryWrapper<MD5TaskRecord>().eq("student_id", studentId)
+        );
+        poRunCodesRecordMapper.delete(
+                new QueryWrapper<PORunCodesRecord>().eq("student_id", studentId)
+        );
+        studyRecordMapper.delete(
+                new QueryWrapper<StudyRecord>().eq("student_id", studentId)
+        );
+
+        classMapper.removeClassStudent(studentId);
     }
 
     @Override
@@ -101,13 +126,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     @Override
-    public List<User> selectUserByTeacher(String teacherId){
+    public List<User> selectUserByTeacher(String teacherId) {
         return userMapper.selectUserByTeacher(teacherId);
     }
 
     @Override
     public Integer countStudentsByClassNum(String classNum) {
         return userMapper.countStudentsByClassNum(classNum);
+    }
+
+    @Override
+    public List<Long> selectTeacherIdByAccount(String account) {
+        return userMapper.selectTeacherIdByAccount(account);
+    }
+
+    @Override
+    public List<Long> selectTeacherIdById(long id) {
+        return userMapper.selectTeacherIdById(id);
     }
 
     @SuppressWarnings("unchecked")
@@ -191,6 +226,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             score = (String) scoreMap.get("总分");
 
             studentJSON = new JSONObject();
+            studentJSON.put("id", user.getId());
+            studentJSON.put("classNum", userMapper.getClassNum(user.getId()));
             studentJSON.put("account", user.getAccount());
             studentJSON.put("name", user.getName());
             studentJSON.put("score", Double.parseDouble(score));
@@ -431,10 +468,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         JSONObject jsonObject = new JSONObject();
 
+        // --------------------------------------------------------------------------------------
+        double summaryScore;
+        if (user.getSummaryScore() != null) {
+            summaryScore = Double.parseDouble(user.getSummaryScore());
+        }else {
+            summaryScore = 0;
+        }
+
         jsonObject.put("算法基础", String.format("%.2f", algorithmScore));
         jsonObject.put("算法攻击", String.format("%.2f", algorithmAttackScore));
         jsonObject.put("数字信封", String.format("%.2f", digitalEnvelopeScore));
-        jsonObject.put("总分", String.format("%.2f", algorithmScore * 0.2 + algorithmAttackScore * 0.3 + digitalEnvelopeScore * 0.5));
+        jsonObject.put("总分", String.format(
+                "%.2f", summaryScore * 0.1 + algorithmScore * 0.1 +
+                        algorithmAttackScore * 0.3 + digitalEnvelopeScore * 0.5)
+        );
         jsonObject.put("页面停留时间", studyTime);
         jsonObject.put("MD5任务耗时", md5TaskTime);
         jsonObject.put("代码考核测试耗时", codeTestTime);

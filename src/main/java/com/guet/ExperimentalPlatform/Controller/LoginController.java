@@ -65,10 +65,14 @@ public class LoginController {
             System.out.println(4);
             session.setAttribute("userId", Long.valueOf(result.getString("userId")));
             session.setAttribute("loginId", Long.valueOf(result.getString("loginRecordId")));
+            session.setAttribute("identity", result.getString("identity"));
 
             result.remove("loginRecordId");
             result.remove("userId");
-            System.out.println(5);
+            if (result.getString("identity").equals("admin")){
+                result.put("identity", "teacher");
+            }
+
             System.out.println(result);
 
             return AES.Encrypt(result.toString(), secretKey);

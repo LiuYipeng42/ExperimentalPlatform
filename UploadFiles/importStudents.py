@@ -10,12 +10,14 @@ args = sys.argv
 fileName = args[1]
 classNum = args[2]
 teacherId = args[3]
+identity = args[4]
 
 db = pymysql.connect(host='localhost', user='root', password='121522734a', port=3306, db='ExperimentalPlatform')
 cursor = db.cursor()
 
 df = pd.read_excel(fileName)
 
+start_row = 0
 
 def print_exception():
     exception = ""
@@ -25,7 +27,16 @@ def print_exception():
     print(exception)
 
 
-for row in range(df.shape[0]):
+if identity == "admin":
+    if df.columns.values[1] != "Unnamed: 1":
+        cursor.execute(
+            "select id from user where account=%s", (df.columns.values[1])
+        )
+        teacherId = cursor.fetchone()[0]
+    start_row = 1
+    
+
+for row in range(start_row, df.shape[0]):
 
     studentNo = int(df.loc[row].values[0])
     studentName = df.loc[row].values[1]
@@ -48,7 +59,7 @@ for row in range(df.shape[0]):
             )
             classId = cursor.lastrowid
         except IntegrityError:
-            cursor.execute("select id from class where classNum=%s", (classNum))
+            cursor.execute("select id from class where class_num=%s", classNum)
             classId = cursor.fetchall()[0][0]
 
         cursor.execute(

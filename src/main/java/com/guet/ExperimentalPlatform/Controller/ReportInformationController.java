@@ -58,10 +58,35 @@ public class ReportInformationController {
 
     }
 
-    @GetMapping("report")
-    public String getReport(@RequestParam("userAccount") String userAccount) {
+    @GetMapping("/saveSummaryScore")
+    public void saveSummaryScore(@RequestParam("account") String userAccount, @RequestParam("score") String score){
+
+        long userId = userService.getOne(
+                new QueryWrapper<User>().eq("account", userAccount)
+        ).getId();
+
+        redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
+
+        userService.update(
+                new UpdateWrapper<User>().set("summary_score", score).eq("id", userId)
+        );
+    }
+
+    @GetMapping("/teacher/report")
+    public String getReport(@RequestParam("account") String userAccount) {
 
         User user = userService.getOne(new QueryWrapper<User>().eq("account", userAccount));
+
+        return userService.getReport(user).toString();
+
+    }
+
+    @GetMapping("/student/report")
+    public String getReport(HttpServletRequest request) {
+
+        long userId = (long) request.getSession().getAttribute("userId");
+
+        User user = userService.getOne(new QueryWrapper<User>().eq("id", userId));
 
         return userService.getReport(user).toString();
 

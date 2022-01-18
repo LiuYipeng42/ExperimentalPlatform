@@ -7,6 +7,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface ClassMapper extends BaseMapper<Class> {
 
@@ -16,4 +18,6 @@ public interface ClassMapper extends BaseMapper<Class> {
     @Delete("delete from student_class where student_id=#{studentId}")
     void removeClassStudent(@Param("studentId") long studentId);
 
+    @Select("select teacher_id from class where class_num=#{classNum}")
+    List<Long> selectTeacherIdByClassNum(@Param("classNum") String classNum);
 }
