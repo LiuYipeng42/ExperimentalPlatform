@@ -28,13 +28,13 @@ import java.util.stream.Collectors;
 @CrossOrigin
 @RestController
 @RequestMapping("/student")
-public class UserController {
+public class UserManageController {
 
     private final UserService userService;
     private final ClassService classService;
 
     @Autowired
-    public UserController(UserService userService, ClassService classService) {
+    public UserManageController(UserService userService, ClassService classService) {
         this.userService = userService;
         this.classService = classService;
     }
@@ -174,7 +174,6 @@ public class UserController {
         long teacherId = (long) request.getSession().getAttribute("userId");
 
         String identity = (String) request.getSession().getAttribute("identity");
-
 
         List<Long> trueTeacher;
 
@@ -332,6 +331,18 @@ public class UserController {
             return result;
         }
         return null;
+    }
+
+    @GetMapping("/class/delete")
+    public String deleteClass(@RequestParam("classNum") String classNum){
+
+        return "success";
+    }
+
+    @GetMapping("/class/changeNum")
+    public String changeClassNum(@RequestParam("classNum") String classNum){
+
+        return "success";
     }
 
     @GetMapping("/classes")

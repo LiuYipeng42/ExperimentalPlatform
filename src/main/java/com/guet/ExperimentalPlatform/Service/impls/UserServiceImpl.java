@@ -349,7 +349,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 new QueryWrapper<MD5TaskRecord>()
                         .eq("student_id", userId)
                         .eq("status", "finished")
-                        .ne("task_name", "task5")  // task5暂不计入分数
         );
 
         HashMap<String, Double> md5TaskTime = new HashMap<>();
@@ -361,8 +360,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             );
         }
 
-        // 四个任务一个 20 分，共 80 分
-        md5CollisionScore = (md5TaskRecords.size() / 4.0) * 80;
+        // 五个任务一个 16 分，共 80 分
+        md5CollisionScore = (md5TaskRecords.size() / 5.0) * 80;
 
         // 20 分钟 20分
         if (studyTime.get("3") < 20) {
@@ -386,14 +385,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 运行 5 次 manual attack 40 分
-        if (poRunCodesRecordMapper.selectList(
+        paddingOracleScore += (poRunCodesRecordMapper.selectList(
                 new QueryWrapper<PORunCodesRecord>()
-                        .eq("student_id", userId)
+                        .select("DISTINCT code_type")
+                        .eq("student_id", 5)
+                        .ne("code_type", "auto_attack")
                         .eq("status", "success")
-                        .ne("code_type", "manual_attack")
-        ).size() > 0) {
-            paddingOracleScore += 40;
-        }
+        ).size() / 5.0 ) * 40;
 
         // 10 分钟 20 分
         if (studyTime.get("2") < 10) {
@@ -472,6 +470,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         double summaryScore;
         if (user.getSummaryScore() != null) {
             summaryScore = Double.parseDouble(user.getSummaryScore());
+            if (summaryScore > 10){
+                summaryScore = 10;
+            }
+            if (summaryScore < 0){
+                summaryScore = 0;
+            }
         }else {
             summaryScore = 0;
         }
