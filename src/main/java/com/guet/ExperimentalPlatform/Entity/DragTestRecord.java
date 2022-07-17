@@ -1,6 +1,5 @@
 package com.guet.ExperimentalPlatform.Entity;
 
-
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -9,14 +8,13 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@TableName("class")
-public class Class {
+@TableName("drag_test_record")
+public class DragTestRecord {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    String classNum;
+    private long studentId;
 
-    int teacherId;
-
+    int step;
 }

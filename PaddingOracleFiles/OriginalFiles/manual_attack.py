@@ -40,8 +40,8 @@ if __name__ == "__main__":
     IV    = iv_and_ctext[00:16]
     C1    = iv_and_ctext[16:32]  # 1st block of ciphertext
     C2    = iv_and_ctext[32:48]  # 2nd block of ciphertext
-    # print("C1:  " + C1.hex())
-    # print("C2:  " + C2.hex())
+    print("C1:  " + C1.hex())
+    print("C2:  " + C2.hex())
 
     # Here, we initialize D2 with C1, so when they are XOR-ed,
     # The result is 0. This is not required for the attack.

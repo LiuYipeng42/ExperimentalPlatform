@@ -29,6 +29,13 @@ public class AlgorithmController {
         this.redisTemplate = redisTemplate;
     }
 
+    @GetMapping("/sha256")
+    public JSONObject sha256(@RequestParam("plaintext") String plaintext) throws IOException {
+        return JSON.parseObject(
+                RunCMD.execute("python3 Algorithms/SHA256.py " + plaintext)
+        );
+    }
+
     @PostMapping("/aes") // aes 加密过程
     public JSONObject Aes(HttpServletRequest request, @RequestBody AlgorithmParams algorithmPara) throws IOException {
 

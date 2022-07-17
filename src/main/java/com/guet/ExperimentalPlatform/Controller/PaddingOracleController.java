@@ -115,7 +115,7 @@ public class PaddingOracleController {
     }
 
     @PostMapping("/auto_attack")
-    public String runAutoAttack(HttpServletRequest request) throws IOException {
+    public String runAutoAttack(HttpServletRequest request){
 
         try {
             long userId = (long) request.getSession().getAttribute("userId");
@@ -184,21 +184,19 @@ public class PaddingOracleController {
                 }
             }
 
-            redisTemplate.opsForSet().add("po:" + userId, part);
-
-            String parts = Objects.requireNonNull(redisTemplate.opsForSet().members("po:" + 1)).toString();
-
-            if (parts.length() <= 13) {
-                if (part == 0) {
-                    result += "\n获取正确明文失败!";
-                } else {
-                    result += "\n恭喜完成第 " + part + " 步!（共 5 步）";
-                }
+            if (part != 0) {
+                redisTemplate.opsForSet().add("po:" + userId, part);
+                result += "\n恭喜完成第 " + part + " 步（共 5 步）\n已获取的部分有: ";
             }
 
-            result += "\n已获取的部分有: " + parts.substring(1, parts.length() - 1);
+            if (part == 5)
+                result += "!";
 
-            if (parts.length() == 15) {
+            String parts = Objects.requireNonNull(redisTemplate.opsForSet().members("po:" + userId)).toString();
+
+            System.out.println(parts);
+            if (parts.length() == 5) {
+                System.out.println("success");
                 redisTemplate.opsForValue().setBit("reportUpdate", userId, true);
                 paddingOracleService.save(
                         new PORunCodesRecord()
